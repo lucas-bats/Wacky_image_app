@@ -186,7 +186,7 @@ export default function WackyImageForge() {
   return (
     <div className="container mx-auto p-4 md:p-8 font-headline">
       <header className="text-center my-8 md:my-12 relative">
-        <h1 className="text-6xl md:text-8xl font-bold text-primary-foreground tracking-tight" style={{ textShadow: '4px 4px 0 hsl(var(--primary))'}}>
+        <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
           Wacky Image Forge
         </h1>
         <p className="text-muted-foreground mt-4 text-lg md:text-xl font-body">Craft chaotic creations with a click!</p>
