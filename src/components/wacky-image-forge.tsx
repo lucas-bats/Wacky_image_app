@@ -43,7 +43,7 @@ const keywordCategories: { [key: string]: { color: string; textColor: string; ke
       'reading a book': <BookOpen />,
       'painting': <Brush />,
       'coding': <Code />,
-      'juggling planets': ' juggling 🪐',
+      'juggling planets': '🪐',
       'riding a monocycle': <Bike />,
       'breathing fire': <Flame />,
     }
