@@ -279,15 +279,6 @@ export default function WackyImageForge() {
 
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="space-y-8">
-          <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
-            <CardContent className="p-6">
-              <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
-                <p className="text-center text-xl text-foreground font-body">
-                  {promptText || T.promptPlaceholder}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
            <div className="flex flex-col gap-4">
               <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
                 {isPending && generatedImage === null ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
@@ -326,7 +317,16 @@ export default function WackyImageForge() {
           </div>
         </div>
 
-        <div className="sticky top-8">
+        <div className="sticky top-8 space-y-8">
+          <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
+            <CardContent className="p-6">
+              <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
+                <p className="text-center text-xl text-foreground font-body">
+                  {promptText || T.promptPlaceholder}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
            {isPending && !generatedImage && (
             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 aspect-square border-4 border-dashed border-border">
                 <Loader2 className="w-16 h-16 animate-spin text-primary" />
