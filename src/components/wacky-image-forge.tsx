@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useTransition, ReactNode } from 'react';
+import { useState, useMemo, useTransition, ReactNode, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -28,6 +28,7 @@ export default function WackyImageForge() {
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const imageAreaRef = useRef<HTMLDivElement>(null);
 
   const T = translations[language];
 
@@ -160,10 +161,13 @@ export default function WackyImageForge() {
       })
       return;
     }
+
+    imageAreaRef.current?.scrollIntoView({ behavior: 'smooth' });
+    
     startTransition(async () => {
       const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
-      const { imageUrl, error, prompt } = await generateImageAction(englishKeywords);
+      const { imageUrl, error } = await generateImageAction(englishKeywords);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
@@ -317,7 +321,7 @@ export default function WackyImageForge() {
           </div>
         </div>
 
-        <div className="sticky top-8 space-y-8">
+        <div ref={imageAreaRef} className="sticky top-8 space-y-8">
           <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
             <CardContent className="p-6">
               <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
@@ -352,7 +356,7 @@ export default function WackyImageForge() {
           )}
 
           {!isPending && !generatedImage && (
-             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 min-h-48">
+             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
                 <div className="text-center">
                     <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
                     <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
