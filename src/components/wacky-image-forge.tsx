@@ -168,7 +168,7 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        setCurrentPrompt(prompt);
+        setCurrentPrompt(promptText);
       }
     });
   };
