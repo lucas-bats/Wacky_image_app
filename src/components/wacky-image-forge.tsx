@@ -19,10 +19,11 @@ const SaturnIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
 type Category = keyof KeywordCategories;
+type CategoryName = (typeof translations)[Language]['categoryNames'][Category];
 
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
-  const [selectedKeywords, setSelectedKeywords] = useState<Map<Category, string>>(new Map());
+  const [selectedKeywords, setSelectedKeywords] = useState<Map<CategoryName, string>>(new Map());
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
@@ -97,7 +98,7 @@ export default function WackyImageForge() {
     },
   };
 
-  const categoryOrder = Object.keys(keywordCategories) as Category[];
+  const categoryOrder = Object.keys(keywordCategories) as CategoryName[];
 
   const promptText = useMemo(() => {
     const orderedKeywords: string[] = [];
@@ -109,7 +110,7 @@ export default function WackyImageForge() {
     return orderedKeywords.join(', ');
   }, [selectedKeywords, categoryOrder]);
 
-  const handleKeywordClick = (category: Category, keyword: string) => {
+  const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
@@ -117,6 +118,36 @@ export default function WackyImageForge() {
       newMap.set(category, keyword);
     }
     setSelectedKeywords(newMap);
+  };
+
+  const mapKeywordsToEnglish = (keywords: Map<CategoryName, string>): string[] => {
+    const englishKeywords: string[] = [];
+    if (language === 'en') {
+        return Array.from(keywords.values());
+    }
+
+    const langTranslations = translations[language];
+    const enTranslations = translations.en;
+
+    keywords.forEach((value, key) => {
+        // Find the category key ('Animals', 'Actions', etc.)
+        const categoryKey = Object.keys(langTranslations.categoryNames).find(
+            (k) => langTranslations.categoryNames[k as Category] === key
+        ) as Category | undefined;
+
+        if (categoryKey) {
+            // Find the keyword key ('T-rex', 'eating spaghetti', etc.)
+            const keywordKey = Object.keys(langTranslations.keywordCategories[categoryKey].keywords).find(
+                (k) => langTranslations.keywordCategories[categoryKey].keywords[k as keyof typeof langTranslations.keywordCategories[Category]['keywords']] === value
+            );
+
+            if (keywordKey) {
+                const englishKeyword = enTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof enTranslations.keywordCategories[Category]['keywords']];
+                englishKeywords.push(englishKeyword);
+            }
+        }
+    });
+    return englishKeywords;
   };
 
   const handleGenerate = () => {
@@ -129,21 +160,8 @@ export default function WackyImageForge() {
       return;
     }
     startTransition(async () => {
-      // We need to map translated keywords back to English for the AI
-      const englishKeywords: string[] = [];
-      const enTranslations = translations.en.keywordCategories;
+      const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
-      selectedKeywords.forEach((value, key) => {
-          const categoryKey = Object.keys(translations.pt.categoryNames).find(k => translations.pt.categoryNames[k as keyof typeof translations.pt.categoryNames] === key) as keyof typeof translations.pt.categoryNames;
-          const keywordKey = Object.keys(translations.pt.keywordCategories[categoryKey].keywords).find(k => translations.pt.keywordCategories[categoryKey].keywords[k as keyof typeof translations.pt.keywordCategories[typeof categoryKey]['keywords']] === value);
-          
-          if(categoryKey && keywordKey){
-            const englishKeyword = translations.en.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof translations.en.keywordCategories[typeof categoryKey]['keywords']];
-            englishKeywords.push(englishKeyword);
-          }
-      });
-      
-
       const { imageUrl, error, prompt } = await generateImageAction(englishKeywords);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
@@ -162,15 +180,27 @@ export default function WackyImageForge() {
       if (error || !prompt) {
         toast({ title: T.toast.chaosFailed.title, description: error || T.toast.chaosFailed.description, variant: "destructive"});
       } else {
-        const newSelected = new Map();
-        // This relies on the specific prompt structure from the Genkit flow.
+        const newSelected = new Map<CategoryName, string>();
+        
+        // This relies on the specific prompt structure from the Genkit flow: "A {animal} {action} {setting}, in {style} style."
         const promptParts = prompt.replace('A ', '').replace(' style.', '').replace(/, in /g, ', ').split(', ');
         const [animal, action, setting, style] = promptParts;
 
-        if (animal) newSelected.set(T.categoryNames.Animals, T.keywordCategories.Animals.keywords[animal as keyof typeof T.keywordCategories.Animals.keywords]);
-        if (action) newSelected.set(T.categoryNames.Actions, T.keywordCategories.Actions.keywords[action as keyof typeof T.keywordCategories.Actions.keywords]);
-        if (setting) newSelected.set(T.categoryNames.Settings, T.keywordCategories.Settings.keywords[setting as keyof typeof T.keywordCategories.Settings.keywords]);
-        if (style) newSelected.set(T.categoryNames.Styles, T.keywordCategories.Styles.keywords[style as keyof typeof T.keywordCategories.Styles.keywords]);
+        const findKeyByValue = (obj: {[key: string]: string}, value: string) => Object.keys(obj).find(key => obj[key] === value);
+        
+        const enCategories = translations.en.keywordCategories;
+
+        const animalKey = findKeyByValue(enCategories.Animals.keywords, animal);
+        const actionKey = findKeyByValue(enCategories.Actions.keywords, action);
+        const settingKey = findKeyByValue(enCategories.Settings.keywords, setting);
+        const styleKey = findKeyByValue(enCategories.Styles.keywords, style);
+
+        const currentLangCategories = T.keywordCategories;
+        
+        if (animalKey) newSelected.set(T.categoryNames.Animals, currentLangCategories.Animals.keywords[animalKey as keyof typeof currentLangCategories.Animals.keywords]);
+        if (actionKey) newSelected.set(T.categoryNames.Actions, currentLangCategories.Actions.keywords[actionKey as keyof typeof currentLangCategories.Actions.keywords]);
+        if (settingKey) newSelected.set(T.categoryNames.Settings, currentLangCategories.Settings.keywords[settingKey as keyof typeof currentLangCategories.Settings.keywords]);
+        if (styleKey) newSelected.set(T.categoryNames.Styles, currentLangCategories.Styles.keywords[styleKey as keyof typeof currentLangCategories.Styles.keywords]);
 
         setSelectedKeywords(newSelected);
       }
@@ -235,15 +265,15 @@ export default function WackyImageForge() {
           </Card>
            <div className="flex flex-col gap-4">
               <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
-                {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+                {isPending && generatedImage === null ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
               </Button>
               <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
-                <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
+                {isPending && generatedImage !== null ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}</>}
               </Button>
             </div>
 
           <div className="space-y-6">
-            {(Object.keys(keywordCategories) as Category[]).map((category) => (
+            {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
               <div key={category}>
                 <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
