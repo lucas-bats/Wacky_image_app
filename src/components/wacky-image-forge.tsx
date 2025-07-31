@@ -186,7 +186,10 @@ export default function WackyImageForge() {
         const promptParts = prompt.replace('A ', '').replace(' style.', '').replace(/, in /g, ', ').split(', ');
         const [animal, action, setting, style] = promptParts;
 
-        const findKeyByValue = (obj: {[key: string]: string}, value: string) => Object.keys(obj).find(key => obj[key].toLowerCase() === value.toLowerCase());
+        const findKeyByValue = (obj: {[key: string]: string}, value: string) => {
+            if (!value) return undefined;
+            return Object.keys(obj).find(key => obj[key].toLowerCase() === value.toLowerCase());
+        }
         
         const enCategories = translations.en.keywordCategories;
         const currentLangCategories = T.keywordCategories;
