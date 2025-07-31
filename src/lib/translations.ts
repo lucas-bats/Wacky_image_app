@@ -110,7 +110,7 @@ export const translations = {
   },
   pt: {
     title: 'Forja de Imagens Malucas',
-    subtitle: 'Crie criações caóticas com um clique!',
+    subtitle: 'Dê vida a imagens caóticas com um clique!',
     promptPlaceholder: 'Selecione as palavras-chave para começar...',
     languageButton: 'Mudar idioma',
     buttons: {
@@ -218,5 +218,3 @@ export const translations = {
     }
   },
 };
-
-    
