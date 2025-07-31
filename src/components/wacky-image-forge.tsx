@@ -328,7 +328,7 @@ export default function WackyImageForge() {
             </CardContent>
           </Card>
            {isPending && !generatedImage && (
-            <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 aspect-square border-4 border-dashed border-border">
+            <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
                 <Loader2 className="w-16 h-16 animate-spin text-primary" />
                 <p className="font-body text-accent text-lg">{T.status.forging}</p>
                 <p className="text-muted-foreground text-sm">{T.status.takeAMoment}</p>
@@ -352,7 +352,7 @@ export default function WackyImageForge() {
           )}
 
           {!isPending && !generatedImage && (
-             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border aspect-square">
+             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 min-h-48">
                 <div className="text-center">
                     <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
                     <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
@@ -364,3 +364,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
