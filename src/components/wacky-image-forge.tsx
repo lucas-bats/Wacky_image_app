@@ -130,18 +130,19 @@ export default function WackyImageForge() {
     const enTranslations = translations.en;
 
     keywords.forEach((value, key) => {
-        // Find the category key ('Animals', 'Actions', etc.)
+        // Find the category key ('Animals', 'Actions', etc.) in the current language
         const categoryKey = Object.keys(langTranslations.categoryNames).find(
             (k) => langTranslations.categoryNames[k as Category] === key
         ) as Category | undefined;
 
         if (categoryKey) {
-            // Find the keyword key ('T-rex', 'eating spaghetti', etc.)
+            // Find the keyword key ('T-rex', 'eating spaghetti', etc.) in the current language
             const keywordKey = Object.keys(langTranslations.keywordCategories[categoryKey].keywords).find(
                 (k) => langTranslations.keywordCategories[categoryKey].keywords[k as keyof typeof langTranslations.keywordCategories[Category]['keywords']] === value
             );
 
             if (keywordKey) {
+                // Get the English keyword using the found key
                 const englishKeyword = enTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof enTranslations.keywordCategories[Category]['keywords']];
                 englishKeywords.push(englishKeyword);
             }
@@ -182,24 +183,24 @@ export default function WackyImageForge() {
       } else {
         const newSelected = new Map<CategoryName, string>();
         
-        // This relies on the specific prompt structure from the Genkit flow: "A {animal} {action} {setting}, in {style} style."
         const promptParts = prompt.replace('A ', '').replace(' style.', '').replace(/, in /g, ', ').split(', ');
         const [animal, action, setting, style] = promptParts;
 
-        const findKeyByValue = (obj: {[key: string]: string}, value: string) => Object.keys(obj).find(key => obj[key] === value);
+        const findKeyByValue = (obj: {[key: string]: string}, value: string) => Object.keys(obj).find(key => obj[key].toLowerCase() === value.toLowerCase());
         
         const enCategories = translations.en.keywordCategories;
+        const currentLangCategories = T.keywordCategories;
 
         const animalKey = findKeyByValue(enCategories.Animals.keywords, animal);
-        const actionKey = findKeyByValue(enCategories.Actions.keywords, action);
-        const settingKey = findKeyByValue(enCategories.Settings.keywords, setting);
-        const styleKey = findKeyByValue(enCategories.Styles.keywords, style);
-
-        const currentLangCategories = T.keywordCategories;
-        
         if (animalKey) newSelected.set(T.categoryNames.Animals, currentLangCategories.Animals.keywords[animalKey as keyof typeof currentLangCategories.Animals.keywords]);
+        
+        const actionKey = findKeyByValue(enCategories.Actions.keywords, action);
         if (actionKey) newSelected.set(T.categoryNames.Actions, currentLangCategories.Actions.keywords[actionKey as keyof typeof currentLangCategories.Actions.keywords]);
+        
+        const settingKey = findKeyByValue(enCategories.Settings.keywords, setting);
         if (settingKey) newSelected.set(T.categoryNames.Settings, currentLangCategories.Settings.keywords[settingKey as keyof typeof currentLangCategories.Settings.keywords]);
+
+        const styleKey = findKeyByValue(enCategories.Styles.keywords, style);
         if (styleKey) newSelected.set(T.categoryNames.Styles, currentLangCategories.Styles.keywords[styleKey as keyof typeof currentLangCategories.Styles.keywords]);
 
         setSelectedKeywords(newSelected);
@@ -232,8 +233,32 @@ export default function WackyImageForge() {
   };
 
   const toggleLanguage = () => {
-    setLanguage(prev => (prev === 'en' ? 'pt' : 'en'));
-    setSelectedKeywords(new Map()); // Clear selections on language change
+    const newLang = language === 'en' ? 'pt' : 'en';
+    setLanguage(newLang);
+
+    // Translate selected keywords to the new language
+    const newSelectedKeywords = new Map<CategoryName, string>();
+    const oldLang = translations[language];
+    const newLangTranslations = translations[newLang];
+
+    selectedKeywords.forEach((value, key) => {
+        const categoryKey = Object.keys(oldLang.categoryNames).find(
+            (k) => oldLang.categoryNames[k as Category] === key
+        ) as Category | undefined;
+        
+        if (categoryKey) {
+            const keywordKey = Object.keys(oldLang.keywordCategories[categoryKey].keywords).find(
+                (k) => oldLang.keywordCategories[categoryKey].keywords[k as keyof typeof oldLang.keywordCategories[Category]['keywords']] === value
+            );
+
+            if (keywordKey) {
+                const newCategoryName = newLangTranslations.categoryNames[categoryKey];
+                const newKeyword = newLangTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof newLangTranslations.keywordCategories[Category]['keywords']];
+                newSelectedKeywords.set(newCategoryName, newKeyword);
+            }
+        }
+    });
+    setSelectedKeywords(newSelectedKeywords);
   };
 
 
@@ -302,7 +327,7 @@ export default function WackyImageForge() {
         </div>
 
         <div className="sticky top-8">
-           {isPending && (
+           {isPending && !generatedImage && (
             <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 aspect-square border-4 border-dashed border-border">
                 <Loader2 className="w-16 h-16 animate-spin text-primary" />
                 <p className="font-body text-accent text-lg">{T.status.forging}</p>
@@ -339,5 +364,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
