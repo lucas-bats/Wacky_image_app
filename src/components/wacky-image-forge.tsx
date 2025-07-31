@@ -177,15 +177,12 @@ export default function WackyImageForge() {
     startTransition(async () => {
       setGeneratedImage(null);
       setCurrentPrompt('');
-      const { error, prompt } = await generateChaosPromptAction();
-      if (error || !prompt) {
+      const { error, result } = await generateChaosPromptAction();
+      if (error || !result) {
         toast({ title: T.toast.chaosFailed.title, description: error || T.toast.chaosFailed.description, variant: "destructive"});
       } else {
         const newSelected = new Map<CategoryName, string>();
         
-        const promptParts = prompt.replace('A ', '').replace(' style.', '').replace(/, in /g, ', ').split(', ');
-        const [animal, action, setting, style] = promptParts;
-
         const findKeyByValue = (obj: {[key: string]: string}, value: string) => {
             if (!value) return undefined;
             return Object.keys(obj).find(key => obj[key].toLowerCase() === value.toLowerCase());
@@ -194,16 +191,16 @@ export default function WackyImageForge() {
         const enCategories = translations.en.keywordCategories;
         const currentLangCategories = T.keywordCategories;
 
-        const animalKey = findKeyByValue(enCategories.Animals.keywords, animal);
+        const animalKey = findKeyByValue(enCategories.Animals.keywords, result.animal);
         if (animalKey) newSelected.set(T.categoryNames.Animals, currentLangCategories.Animals.keywords[animalKey as keyof typeof currentLangCategories.Animals.keywords]);
         
-        const actionKey = findKeyByValue(enCategories.Actions.keywords, action);
+        const actionKey = findKeyByValue(enCategories.Actions.keywords, result.action);
         if (actionKey) newSelected.set(T.categoryNames.Actions, currentLangCategories.Actions.keywords[actionKey as keyof typeof currentLangCategories.Actions.keywords]);
         
-        const settingKey = findKeyByValue(enCategories.Settings.keywords, setting);
+        const settingKey = findKeyByValue(enCategories.Settings.keywords, result.setting);
         if (settingKey) newSelected.set(T.categoryNames.Settings, currentLangCategories.Settings.keywords[settingKey as keyof typeof currentLangCategories.Settings.keywords]);
 
-        const styleKey = findKeyByValue(enCategories.Styles.keywords, style);
+        const styleKey = findKeyByValue(enCategories.Styles.keywords, result.style);
         if (styleKey) newSelected.set(T.categoryNames.Styles, currentLangCategories.Styles.keywords[styleKey as keyof typeof currentLangCategories.Styles.keywords]);
 
         setSelectedKeywords(newSelected);

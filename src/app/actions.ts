@@ -2,7 +2,7 @@
 'use server';
 
 import { generateImage } from '@/ai/flows/generate-image';
-import { generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
+import { ChaosPromptOutput, generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
 
 export async function generateImageAction(keywords: string[]): Promise<{ imageUrl: string | null; error: string | null; prompt: string }> {
   const prompt = keywords.join(' ');
@@ -18,15 +18,15 @@ export async function generateImageAction(keywords: string[]): Promise<{ imageUr
   }
 }
 
-export async function generateChaosPromptAction(): Promise<{ prompt: string | null; error: string | null }> {
+export async function generateChaosPromptAction(): Promise<{ result: ChaosPromptOutput | null; error: string | null }> {
   try {
-    const { prompt } = await generateRandomPrompt();
-    if (!prompt) {
-        return { prompt: null, error: 'Failed to generate a chaos prompt.' };
+    const result = await generateRandomPrompt();
+    if (!result) {
+        return { result: null, error: 'Failed to generate a chaos prompt.' };
     }
-    return { prompt, error: null };
+    return { result, error: null };
   } catch (e) {
     console.error(e);
-    return { prompt: null, error: 'Failed to generate chaos prompt. The AI is extra chaotic today. Please try again.' };
+    return { result: null, error: 'Failed to generate chaos prompt. The AI is extra chaotic today. Please try again.' };
   }
 }

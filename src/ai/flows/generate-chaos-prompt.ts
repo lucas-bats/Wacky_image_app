@@ -13,6 +13,10 @@ import {z} from 'genkit';
 
 const ChaosPromptOutputSchema = z.object({
   prompt: z.string().describe('A randomly generated prompt string.'),
+  animal: z.string().describe('A random animal.'),
+  action: z.string().describe('A random action.'),
+  setting: z.string().describe('A random setting.'),
+  style: z.string().describe('A random style.'),
 });
 
 export type ChaosPromptOutput = z.infer<typeof ChaosPromptOutputSchema>;
@@ -24,10 +28,10 @@ const animals = [
   'Puppy',
   'Elephant',
   'Lion',
-  'Tiger',
-  'Bear',
-  'Eagle',
-  'Shark',
+  'Unicorn',
+  'Dragon',
+  'Llama',
+  'Robot',
 ];
 const actions = [
   'eating spaghetti',
@@ -37,21 +41,21 @@ const actions = [
   'reading a book',
   'painting',
   'coding',
-  'singing',
-  'sleeping',
-  'cooking',
+  'juggling planets',
+  'riding a monocycle',
+  'breathing fire',
 ];
 const settings = [
   'on Saturn',
   'in a jungle',
   'underwater',
   'in a castle',
-  'on a mountain',
-  'in a desert',
-  'in a forest',
-  'on a beach',
-  'in a city',
-  'in a spaceship',
+  'on a mountain top',
+  'in a neon-lit city',
+  'inside a volcano',
+  'at a disco',
+  'in a library of lost books',
+  'on a pirate ship',
 ];
 const styles = [
   'pixel art',
@@ -60,10 +64,10 @@ const styles = [
   'photorealistic',
   'oil painting',
   'watercolor',
-  'abstract',
-  'steampunk',
   'cyberpunk',
-  'renaissance',
+  'steampunk',
+  'art deco',
+  'vaporwave',
 ];
 
 function getRandomElement<T>(array: T[]): T {
@@ -89,6 +93,10 @@ const chaosPromptFlow = ai.defineFlow(
 
     return {
       prompt: prompt,
+      animal,
+      action,
+      setting,
+      style,
     };
   }
 );
