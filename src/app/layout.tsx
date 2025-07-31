@@ -15,8 +15,8 @@ const alegreya = Alegreya({
 })
 
 export const metadata: Metadata = {
-  title: 'Wacky Image Forge',
-  description: 'Generate fun, chaotic images from wacky keywords!',
+  title: 'Forja de Imagens Malucas',
+  description: 'Crie criações caóticas com um clique!',
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lilitaOne.variable} ${alegreya.variable}`}>
+    <html lang="pt-BR" className={`${lilitaOne.variable} ${alegreya.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -38,3 +38,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    

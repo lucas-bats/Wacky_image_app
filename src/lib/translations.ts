@@ -1,0 +1,222 @@
+export const translations = {
+  en: {
+    title: 'Wacky Image Forge',
+    subtitle: 'Craft chaotic creations with a click!',
+    promptPlaceholder: 'Select keywords to begin...',
+    languageButton: 'Change language',
+    buttons: {
+      generate: 'Generate Image',
+      generating: 'Generating...',
+      chaos: 'Chaos Mode',
+    },
+    status: {
+      forging: 'Forging your wacky image...',
+      takeAMoment: 'This can take a moment.',
+    },
+    imageCard: {
+      title: 'Behold!',
+      save: 'Save',
+      remix: 'Remix',
+    },
+    placeholderCard: {
+      title: 'Your creation will appear here',
+      subtitle: 'Let your imagination run wild!',
+    },
+    toast: {
+      noKeywords: {
+        title: "No keywords!",
+        description: "Please select some keywords to generate an image.",
+      },
+      generationFailed: {
+        title: "Generation Failed",
+      },
+      chaosFailed: {
+        title: "Chaos Failed!",
+        description: "Could not generate a chaotic prompt.",
+      },
+      downloadFailed: {
+        title: "Download Failed",
+        description: "Could not download the image.",
+      },
+    },
+    categoryNames: {
+      Animals: 'Animals',
+      Actions: 'Actions',
+      Settings: 'Settings',
+      Styles: 'Styles',
+    },
+    keywordCategories: {
+      Animals: {
+        name: 'Animals',
+        keywords: {
+          'T-rex': 'T-rex',
+          'Penguin': 'Penguin',
+          'Kitten': 'Kitten',
+          'Puppy': 'Puppy',
+          'Elephant': 'Elephant',
+          'Lion': 'Lion',
+          'Unicorn': 'Unicorn',
+          'Dragon': 'Dragon',
+          'Llama': 'Llama',
+          'Robot': 'Robot',
+        },
+      },
+      Actions: {
+        name: 'Actions',
+        keywords: {
+          'eating spaghetti': 'eating spaghetti',
+          'skateboarding': 'skateboarding',
+          'dancing': 'dancing',
+          'flying': 'flying',
+          'reading a book': 'reading a book',
+          'painting': 'painting',
+          'coding': 'coding',
+          'juggling planets': 'juggling planets',
+          'riding a monocycle': 'riding a monocycle',
+          'breathing fire': 'breathing fire',
+        },
+      },
+      Settings: {
+        name: 'Settings',
+        keywords: {
+          'on Saturn': 'on Saturn',
+          'in a jungle': 'in a jungle',
+          'underwater': 'underwater',
+          'in a castle': 'in a castle',
+          'on a mountain top': 'on a mountain top',
+          'in a neon-lit city': 'in a neon-lit city',
+          'inside a volcano': 'inside a volcano',
+          'at a disco': 'at a disco',
+          'in a library of lost books': 'in a library of lost books',
+          'on a pirate ship': 'on a pirate ship',
+        },
+      },
+      Styles: {
+        name: 'Styles',
+        keywords: {
+          'pixel art': 'pixel art',
+          '3D render': '3D render',
+          'cartoon': 'cartoon',
+          'photorealistic': 'photorealistic',
+          'oil painting': 'oil painting',
+          'watercolor': 'watercolor',
+          'cyberpunk': 'cyberpunk',
+          'steampunk': 'steampunk',
+          'art deco': 'art deco',
+          'vaporwave': 'vaporwave',
+        },
+      },
+    }
+  },
+  pt: {
+    title: 'Forja de Imagens Malucas',
+    subtitle: 'Crie criações caóticas com um clique!',
+    promptPlaceholder: 'Selecione as palavras-chave para começar...',
+    languageButton: 'Mudar idioma',
+    buttons: {
+      generate: 'Gerar Imagem',
+      generating: 'Gerando...',
+      chaos: 'Modo Caos',
+    },
+    status: {
+      forging: 'Forjando sua imagem maluca...',
+      takeAMoment: 'Isso pode levar um momento.',
+    },
+    imageCard: {
+      title: 'Contemple!',
+      save: 'Salvar',
+      remix: 'Remixar',
+    },
+    placeholderCard: {
+      title: 'Sua criação aparecerá aqui',
+      subtitle: 'Deixe sua imaginação voar!',
+    },
+    toast: {
+      noKeywords: {
+        title: "Nenhuma palavra-chave!",
+        description: "Por favor, selecione algumas palavras-chave para gerar uma imagem.",
+      },
+      generationFailed: {
+        title: "Falha na Geração",
+      },
+      chaosFailed: {
+        title: "Falha no Modo Caos!",
+        description: "Não foi possível gerar um prompt caótico.",
+      },
+      downloadFailed: {
+        title: "Falha no Download",
+        description: "Não foi possível baixar a imagem.",
+      },
+    },
+    categoryNames: {
+      Animals: 'Animais',
+      Actions: 'Ações',
+      Settings: 'Cenários',
+      Styles: 'Estilos',
+    },
+    keywordCategories: {
+      Animals: {
+        name: 'Animais',
+        keywords: {
+          'T-rex': 'T-rex',
+          'Penguin': 'Pinguim',
+          'Kitten': 'Gatinho',
+          'Puppy': 'Cachorrinho',
+          'Elephant': 'Elefante',
+          'Lion': 'Leão',
+          'Unicorn': 'Unicórnio',
+          'Dragon': 'Dragão',
+          'Llama': 'Lhama',
+          'Robot': 'Robô',
+        },
+      },
+      Actions: {
+        name: 'Ações',
+        keywords: {
+          'eating spaghetti': 'comendo espaguete',
+          'skateboarding': 'andando de skate',
+          'dancing': 'dançando',
+          'flying': 'voando',
+          'reading a book': 'lendo um livro',
+          'painting': 'pintando',
+          'coding': 'programando',
+          'juggling planets': 'malabarando planetas',
+          'riding a monocycle': 'andando de monociclo',
+          'breathing fire': 'soltando fogo pela boca',
+        },
+      },
+      Settings: {
+        name: 'Cenários',
+        keywords: {
+          'on Saturn': 'em Saturno',
+          'in a jungle': 'numa selva',
+          'underwater': 'debaixo d\'água',
+          'in a castle': 'num castelo',
+          'on a mountain top': 'no topo de uma montanha',
+          'in a neon-lit city': 'numa cidade neon',
+          'inside a volcano': 'dentro de um vulcão',
+          'at a disco': 'numa discoteca',
+          'in a library of lost books': 'numa biblioteca de livros perdidos',
+          'on a pirate ship': 'num navio pirata',
+        },
+      },
+      Styles: {
+        name: 'Estilos',
+        keywords: {
+          'pixel art': 'arte em pixel',
+          '3D render': 'renderização 3D',
+          'cartoon': 'desenho animado',
+          'photorealistic': 'fotorrealista',
+          'oil painting': 'pintura a óleo',
+          'watercolor': 'aquarela',
+          'cyberpunk': 'cyberpunk',
+          'steampunk': 'steampunk',
+          'art deco': 'art déco',
+          'vaporwave': 'vaporwave',
+        },
+      },
+    }
+  },
+};
+
+    
