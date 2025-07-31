@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useTransition, ReactNode, useRef } from 'react';
+import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -31,6 +31,14 @@ export default function WackyImageForge() {
   const imageAreaRef = useRef<HTMLDivElement>(null);
 
   const T = translations[language];
+
+  useEffect(() => {
+    // This effect runs after the state has been updated and the UI has re-rendered.
+    if (isPending && !generatedImage) {
+      imageAreaRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isPending, generatedImage]);
+
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
     [T.categoryNames.Animals]: {
@@ -161,10 +169,10 @@ export default function WackyImageForge() {
       })
       return;
     }
-
-    imageAreaRef.current?.scrollIntoView({ behavior: 'smooth' });
     
     startTransition(async () => {
+      setGeneratedImage(null); // Clear previous image
+      setCurrentPrompt(promptText); // Set the current prompt text for display
       const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
       const { imageUrl, error } = await generateImageAction(englishKeywords);
@@ -172,7 +180,6 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        setCurrentPrompt(promptText);
       }
     });
   };
@@ -285,10 +292,10 @@ export default function WackyImageForge() {
         <div className="space-y-8">
            <div className="flex flex-col gap-4">
               <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
-                {isPending && generatedImage === null ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+                {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
               </Button>
               <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
-                {isPending && generatedImage !== null ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}</>}
+                <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
               </Button>
             </div>
 
@@ -321,7 +328,7 @@ export default function WackyImageForge() {
           </div>
         </div>
 
-        <div ref={imageAreaRef} className="sticky top-8 space-y-8">
+        <div className="sticky top-8 space-y-8">
           <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
             <CardContent className="p-6">
               <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
@@ -331,29 +338,31 @@ export default function WackyImageForge() {
               </div>
             </CardContent>
           </Card>
-           {isPending && !generatedImage && (
-            <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
-                <Loader2 className="w-16 h-16 animate-spin text-primary" />
-                <p className="font-body text-accent text-lg">{T.status.forging}</p>
-                <p className="text-muted-foreground text-sm">{T.status.takeAMoment}</p>
-            </Card>
-          )}
+           <div ref={imageAreaRef}>
+             {isPending && !generatedImage && (
+              <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
+                  <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                  <p className="font-body text-accent text-lg">{T.status.forging}</p>
+                  <p className="text-muted-foreground text-sm">{T.status.takeAMoment}</p>
+              </Card>
+            )}
 
-          {!isPending && generatedImage && (
-            <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border">
-                <CardHeader>
-                    <CardTitle className="text-3xl">{T.imageCard.title}</CardTitle>
-                    <CardDescription className="font-body text-lg italic">{currentPrompt}</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <Image src={generatedImage} alt={currentPrompt} width={1024} height={1024} className="w-full h-auto bg-muted" data-ai-hint="abstract art" />
-                </CardContent>
-                <CardFooter className="flex-wrap gap-2 p-4 bg-muted/50">
-                    <Button onClick={handleDownload} className="rounded-lg text-lg h-12 border-b-4 border-blue-800 hover:border-b-2"><Download className="mr-2"/>{T.imageCard.save}</Button>
-                    <Button onClick={handleRemix} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Repeat className="mr-2"/>{T.imageCard.remix}</Button>
-                </CardFooter>
-            </Card>
-          )}
+            {!isPending && generatedImage && (
+              <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border">
+                  <CardHeader>
+                      <CardTitle className="text-3xl">{T.imageCard.title}</CardTitle>
+                      <CardDescription className="font-body text-lg italic">{currentPrompt}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                      <Image src={generatedImage} alt={currentPrompt} width={1024} height={1024} className="w-full h-auto bg-muted" data-ai-hint="abstract art" />
+                  </CardContent>
+                  <CardFooter className="flex-wrap gap-2 p-4 bg-muted/50">
+                      <Button onClick={handleDownload} className="rounded-lg text-lg h-12 border-b-4 border-blue-800 hover:border-b-2"><Download className="mr-2"/>{T.imageCard.save}</Button>
+                      <Button onClick={handleRemix} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Repeat className="mr-2"/>{T.imageCard.remix}</Button>
+                  </CardFooter>
+              </Card>
+            )}
+           </div>
 
           {!isPending && !generatedImage && (
              <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
@@ -368,5 +377,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
