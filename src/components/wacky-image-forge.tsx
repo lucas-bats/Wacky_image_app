@@ -27,6 +27,7 @@ export default function WackyImageForge() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
+  const [shouldScroll, setShouldScroll] = useState(false);
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
 
@@ -34,10 +35,11 @@ export default function WackyImageForge() {
 
   useEffect(() => {
     // This effect runs after the state has been updated and the UI has re-rendered.
-    if (isPending && !generatedImage) {
+    if (isPending && shouldScroll) {
       imageAreaRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setShouldScroll(false); // Reset after scrolling to avoid re-scrolling
     }
-  }, [isPending, generatedImage]);
+  }, [isPending, shouldScroll]);
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -170,6 +172,7 @@ export default function WackyImageForge() {
       return;
     }
     
+    setShouldScroll(true);
     startTransition(async () => {
       setGeneratedImage(null); // Clear previous image
       setCurrentPrompt(promptText); // Set the current prompt text for display
@@ -377,3 +380,4 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
