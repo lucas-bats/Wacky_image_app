@@ -100,7 +100,7 @@ export default function WackyImageForge() {
         const newSelected = new Map();
         Object.entries(keywordCategories).forEach(([cat, data]) => {
           const found = Object.keys(data.keywords).find(word => prompt.toLowerCase().includes(word.toLowerCase()));
-          if (found) newSelected.set(cat, found);
+          if (found) newSelected.set(cat as Category, found);
         })
         setSelectedKeywords(newSelected);
       }
@@ -161,27 +161,31 @@ export default function WackyImageForge() {
             </div>
 
           <div className="space-y-6">
-            <h2 className="text-4xl text-primary font-bold tracking-wider">KEYWORDS</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Object.entries(keywordCategories).map(([category, data]) => 
-                    Object.entries(data.keywords).map(([keyword, icon]) => {
-                        const isSelected = selectedKeywords.get(category as Category) === keyword;
-                        return (
-                            <Button
-                                key={keyword}
-                                onClick={() => handleKeywordClick(category as Category, keyword)}
-                                className={cn(
-                                    'h-16 text-lg rounded-xl border-4 border-border justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
-                                    isSelected ? `${data.color} ${data.textColor} border-yellow-300` : 'bg-card text-card-foreground hover:bg-muted',
-                                )}
-                            >
-                                {icon && <span className="w-8 h-8 mr-3">{icon}</span>}
-                                <span className="font-body">{keyword}</span>
-                            </Button>
-                        )
-                    })
-                )}
-            </div>
+            {(Object.keys(keywordCategories) as Category[]).map((category) => (
+              <div key={category}>
+                <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(keywordCategories[category].keywords).map(([keyword, icon]) => {
+                    const isSelected = selectedKeywords.get(category) === keyword;
+                    return (
+                      <Button
+                        key={keyword}
+                        onClick={() => handleKeywordClick(category, keyword)}
+                        className={cn(
+                          'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
+                          isSelected
+                            ? `${keywordCategories[category].color} ${keywordCategories[category].textColor} border-yellow-300`
+                            : `bg-card text-card-foreground hover:bg-muted border-border`
+                        )}
+                      >
+                        {icon && <span className="w-8 h-8 mr-3">{icon}</span>}
+                        <span className="font-body">{keyword}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
