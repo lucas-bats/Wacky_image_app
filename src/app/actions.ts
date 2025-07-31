@@ -18,16 +18,15 @@ export async function generateImageAction(keywords: string[]): Promise<{ imageUr
   }
 }
 
-export async function generateChaosImageAction(): Promise<{ imageUrl: string | null; prompt: string | null; error: string | null }> {
+export async function generateChaosPromptAction(): Promise<{ prompt: string | null; error: string | null }> {
   try {
     const { prompt } = await generateRandomPrompt();
     if (!prompt) {
-        return { imageUrl: null, prompt: null, error: 'Failed to generate a chaos prompt.' };
+        return { prompt: null, error: 'Failed to generate a chaos prompt.' };
     }
-    const result = await generateImage({ keywords: [prompt] });
-    return { imageUrl: result.image, prompt, error: null };
+    return { prompt, error: null };
   } catch (e) {
     console.error(e);
-    return { imageUrl: null, prompt: null, error: 'Failed to generate image from chaos prompt. The AI is extra chaotic today. Please try again.' };
+    return { prompt: null, error: 'Failed to generate chaos prompt. The AI is extra chaotic today. Please try again.' };
   }
 }
