@@ -4,7 +4,7 @@
 import { generateImage } from '@/ai/flows/generate-image';
 import { ChaosPromptOutput, generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
 import { firestore } from '@/lib/firebase';
-import { collection, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 const MAX_GALLERY_IMAGES = 12;
 
@@ -49,8 +49,10 @@ export async function saveImageToGalleryAction(userId: string, image: Omit<Galle
             const galleryData = docSnap.data();
             let images = galleryData.images || [];
             
+            // Add new image to the start
             images.unshift(newImage); 
             
+            // Enforce max gallery size
             if (images.length > MAX_GALLERY_IMAGES) {
                 images = images.slice(0, MAX_GALLERY_IMAGES);
             }
@@ -58,6 +60,7 @@ export async function saveImageToGalleryAction(userId: string, image: Omit<Galle
             await updateDoc(galleryRef, { images });
 
         } else {
+            // If the document doesn't exist, create it
             await setDoc(galleryRef, { images: [newImage] });
         }
         return { success: true, error: null, imageId: newImage.id };
@@ -98,12 +101,11 @@ export async function deleteImageAction(userId: string, imageId: string): Promis
         const docSnap = await getDoc(galleryRef);
         if (docSnap.exists()) {
             const galleryData = docSnap.data();
-            const imageToDelete = galleryData.images.find((img: GalleryImage) => img.id === imageId);
-            if (imageToDelete) {
-                await updateDoc(galleryRef, {
-                    images: arrayRemove(imageToDelete)
-                });
-            }
+            const updatedImages = galleryData.images.filter((img: GalleryImage) => img.id !== imageId);
+            
+            await updateDoc(galleryRef, {
+                images: updatedImages
+            });
         }
         return { success: true, error: null };
     } catch (e) {
