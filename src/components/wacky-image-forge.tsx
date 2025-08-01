@@ -67,28 +67,27 @@ export default function WackyImageForge() {
             setHasLoadedFromStorage(true);
         }
     } else {
+        // If there's no user, clear the gallery to avoid showing previous user's data
         setGalleryImages([]);
     }
   }, [storageKey, loading]);
   
   // Effect to save to localStorage whenever galleryImages changes, after initial load
   useEffect(() => {
-    if (!hasLoadedFromStorage) return;
+    if (!hasLoadedFromStorage || !storageKey) return;
 
-    if (storageKey) {
-      try {
-        const updatedGallery = galleryImages.slice(0, MAX_GALLERY_IMAGES);
-        localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-          toast({
-              title: T.toast.storageFull.title,
-              description: T.toast.storageFull.description,
-              variant: "destructive",
-          });
-        } else {
-          console.error("Could not save to localStorage", e);
-        }
+    try {
+      const updatedGallery = galleryImages.slice(0, MAX_GALLERY_IMAGES);
+      localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        toast({
+            title: T.toast.storageFull.title,
+            description: T.toast.storageFull.description,
+            variant: "destructive",
+        });
+      } else {
+        console.error("Could not save to localStorage", e);
       }
     }
   }, [galleryImages, storageKey, hasLoadedFromStorage, toast, T.toast.storageFull]);
@@ -589,3 +588,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
