@@ -30,7 +30,7 @@ const generateImageFlow = ai.defineFlow(
   {
     name: 'generateImageFlow',
     inputSchema: GenerateImageInputSchema,
-    outputSchema: GenerateImageOutputSchema,
+    // Removing the output schema to let Genkit infer it.
   },
   async input => {
     // Manually construct the prompt string.
