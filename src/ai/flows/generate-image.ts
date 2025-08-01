@@ -45,7 +45,8 @@ const generateImageFlow = ai.defineFlow(
       // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
 
-      prompt: await imageGenerationPrompt(input),
+      prompt: imageGenerationPrompt,
+      input: input,
 
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
