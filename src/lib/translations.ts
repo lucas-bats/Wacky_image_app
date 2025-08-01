@@ -26,8 +26,7 @@ export const translations = {
       subtitle: 'Let your imagination run wild!',
     },
     gallery: {
-      title: 'Public Gallery',
-      loading: 'Loading gallery...',
+      title: 'Your Gallery',
       empty: 'No images yet. Be the first to create one!',
       modalTitle: 'Creation Details',
       deleteButton: 'Delete Image',
@@ -51,10 +50,6 @@ export const translations = {
       shareFailed: {
         title: "Share Failed",
         description: "Could not share the image.",
-      },
-      galleryFailed: {
-        title: "Gallery Failed",
-        description: "Could not load the public gallery. Check Firestore setup.",
       },
       deleteSuccess: {
         title: "Image deleted!",
@@ -175,8 +170,7 @@ export const translations = {
       subtitle: 'Deixe sua imaginação voar!',
     },
     gallery: {
-      title: 'Galeria Pública',
-      loading: 'Carregando galeria...',
+      title: 'Sua Galeria',
       empty: 'Nenhuma imagem ainda. Seja o primeiro a criar uma!',
       modalTitle: 'Detalhes da Criação',
       deleteButton: 'Apagar Imagem',
@@ -200,10 +194,6 @@ export const translations = {
       shareFailed: {
         title: "Falha ao Compartilhar",
         description: "Não foi possível compartilhar a imagem.",
-      },
-      galleryFailed: {
-        title: "Falha na Galeria",
-        description: "Não foi possível carregar a galeria pública. Verifique a configuração do Firestore.",
       },
       deleteSuccess: {
         title: "Imagem apagada!",

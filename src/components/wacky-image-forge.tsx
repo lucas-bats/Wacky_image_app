@@ -5,7 +5,7 @@ import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from '
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { generateImageAction, generateChaosPromptAction, GalleryImage, getPublicGalleryAction, deleteImageAction } from '@/app/actions';
+import { generateImageAction, generateChaosPromptAction } from '@/app/actions';
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
@@ -21,13 +21,19 @@ type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
 type Category = keyof KeywordCategories;
 type CategoryName = (typeof translations)[Language]['categoryNames'][Category];
 
+interface GalleryImage {
+  id: string;
+  imageUrl: string;
+  prompt: string;
+  createdAt: string;
+}
+
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
   const [selectedKeywords, setSelectedKeywords] = useState<Map<CategoryName, string>>(new Map());
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
-  const [isGalleryLoading, setIsGalleryLoading] = useState(true);
   const [shouldScroll, setShouldScroll] = useState(false);
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
@@ -38,25 +44,15 @@ export default function WackyImageForge() {
   const T = translations[language];
   
   useEffect(() => {
-    if (user) {
-        const fetchGallery = async () => {
-            setIsGalleryLoading(true);
-            const { images, error } = await getPublicGalleryAction();
-            if (error || !images) {
-                console.error(error);
-                toast({
-                    title: T.toast.galleryFailed.title,
-                    description: T.toast.galleryFailed.description,
-                    variant: "destructive",
-                });
-            } else {
-                setGalleryImages(images);
-            }
-            setIsGalleryLoading(false);
+    try {
+        const savedImages = localStorage.getItem('wackyGallery');
+        if (savedImages) {
+            setGalleryImages(JSON.parse(savedImages));
         }
-        fetchGallery();
+    } catch (error) {
+        console.error("Could not load images from localStorage", error);
     }
-  }, [user, T.toast.galleryFailed.title, T.toast.galleryFailed.description, toast]);
+  }, []);
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -216,20 +212,21 @@ export default function WackyImageForge() {
       setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish();
       
-      const { imageUrl, error, imageId } = await generateImageAction(englishKeywords, finalizedPrompt, user?.uid || null);
+      const { imageUrl, error } = await generateImageAction(englishKeywords, finalizedPrompt);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        if (imageUrl && user && imageId) {
+        if (imageUrl) {
             const newImage: GalleryImage = {
-                id: imageId,
+                id: new Date().toISOString(),
                 imageUrl,
                 prompt: finalizedPrompt,
                 createdAt: new Date().toISOString(),
-                userId: user.uid,
             };
-            setGalleryImages(prev => [newImage, ...prev]);
+            const updatedGallery = [newImage, ...galleryImages];
+            setGalleryImages(updatedGallery);
+            localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
         }
       }
     });
@@ -321,22 +318,17 @@ export default function WackyImageForge() {
         toast({ title: T.toast.shareFailed.title, description: T.toast.shareFailed.description, variant: "destructive" });
     }
   };
-
-  const handleDeleteFromGallery = async (id: string, e: React.MouseEvent) => {
+  
+  const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
-    const originalImages = [...galleryImages];
-    setGalleryImages(prev => prev.filter(img => img.id !== id));
-    
-    const { success, error } = await deleteImageAction(id, user?.uid || null);
-    if(success) {
-      toast({
+    const updatedGallery = galleryImages.filter((img) => img.id !== id);
+    setGalleryImages(updatedGallery);
+    localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
+    toast({
         title: T.toast.deleteSuccess.title,
-      });
-    } else {
-      setGalleryImages(originalImages);
-      toast({ title: T.toast.deleteFailed.title, description: error, variant: "destructive" });
-    }
+    });
   };
+
 
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
@@ -369,7 +361,6 @@ export default function WackyImageForge() {
   const renderKeywordButtons = (category: CategoryName) => {
     const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
     const translatedKeywords = T.keywordCategories[categoryKey].keywords;
-    const enKeywords = translations.en.keywordCategories[categoryKey].keywords;
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
@@ -523,12 +514,7 @@ export default function WackyImageForge() {
 
       <section className="mt-16">
         <h2 className="text-5xl font-black text-center text-foreground tracking-tighter mb-8">{T.gallery.title}</h2>
-        {isGalleryLoading ? (
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-              <p className="text-muted-foreground mt-2">{T.gallery.loading}</p>
-            </div>
-        ) : galleryImages.length === 0 ? (
+        {galleryImages.length === 0 ? (
             <div className="text-center text-muted-foreground font-body text-lg">{T.gallery.empty}</div>
         ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -537,17 +523,15 @@ export default function WackyImageForge() {
                     <DialogTrigger asChild>
                         <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group relative">
                             <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
-                            {user?.uid === item.userId && (
-                                <Button
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
-                                onClick={(e) => handleDeleteFromGallery(item.id, e)}
-                                >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">{T.gallery.deleteButton}</span>
-                                </Button>
-                            )}
+                            <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
+                            onClick={(e) => handleDeleteFromGallery(item.id, e)}
+                            >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">{T.gallery.deleteButton}</span>
+                            </Button>
                         </Card>
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl">
