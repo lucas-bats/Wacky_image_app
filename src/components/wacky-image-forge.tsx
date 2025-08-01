@@ -160,7 +160,7 @@ export default function WackyImageForge() {
     const categoryKey = Object.keys(langT.categoryNames).find(k => langT.categoryNames[k as Category] === category) as Category;
     const keywordKey = Object.keys(langT.keywordCategories[categoryKey].keywords).find(k => langT.keywordCategories[categoryKey].keywords[k as keyof typeof langT.keywordCategories[Category]['keywords']] === keyword);
     
-    const emoji = keywordKey ? keywordCategories[category].keywords[keywordKey] : '';
+    const emoji = keywordKey ? keywordCategories[T.categoryNames.Animals].keywords[keywordKey] : '';
 
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
@@ -341,7 +341,7 @@ export default function WackyImageForge() {
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
-      const emoji = keywordCategories[category].keywords[key];
+      const emoji = keywordCategories[T.categoryNames.Animals].keywords[key];
       return (
         <Button
           key={keyword}
@@ -367,6 +367,18 @@ export default function WackyImageForge() {
           {renderKeywordButtons(category)}
         </div>
       </div>
+  );
+
+  const promptBox = (
+    <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
+      <CardContent className="p-6">
+        <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
+          <p className="text-center text-xl text-foreground font-body">
+            {promptText || T.promptPlaceholder}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -395,6 +407,8 @@ export default function WackyImageForge() {
               </Button>
             </div>
           
+            {isMobile && promptBox}
+
             <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
                 <p className="font-body text-lg text-foreground">{T.instruction}</p>
             </div>
@@ -427,15 +441,7 @@ export default function WackyImageForge() {
         </div>
 
         <div className="sticky top-8 space-y-8">
-          <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
-            <CardContent className="p-6">
-              <div className="p-4 rounded-lg bg-muted min-h-[8rem] flex items-center justify-center border-2 border-border">
-                <p className="text-center text-xl text-foreground font-body">
-                  {promptText || T.promptPlaceholder}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {!isMobile && promptBox}
            <div ref={imageAreaRef}>
              {isPending && !generatedImage && (
               <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
@@ -465,7 +471,7 @@ export default function WackyImageForge() {
             {!isPending && !generatedImage && (
              <Card className={cn(
                 "flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out",
-                "h-64"
+                !isMobile && "h-64"
              )}>
                 <div className="text-center">
                     <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
@@ -479,3 +485,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
