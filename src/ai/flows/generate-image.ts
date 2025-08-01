@@ -30,7 +30,7 @@ const generateImageFlow = ai.defineFlow(
   {
     name: 'generateImageFlow',
     inputSchema: GenerateImageInputSchema,
-    // Removing the output schema to let Genkit infer it.
+    outputSchema: GenerateImageOutputSchema,
   },
   async input => {
     // Manually construct the prompt string.
@@ -48,9 +48,9 @@ const generateImageFlow = ai.defineFlow(
     });
 
     if (!media || !media.url) {
-        throw new Error("Image generation failed to return media.");
+      throw new Error('Image generation failed to return media.');
     }
-    
+
     return {image: media.url};
   }
 );

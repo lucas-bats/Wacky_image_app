@@ -37,10 +37,12 @@ export async function generateImageAction(keywords: string[], prompt: string, us
 
     const result = await generateImage({ keywords });
     let imageId = null;
+    let imageUrl = null;
     if (result.image) {
+      imageUrl = result.image;
       imageId = await saveImageToFirestore(prompt, result.image, userId);
     }
-    return { imageUrl: result.image, error: null, prompt, imageId };
+    return { imageUrl: imageUrl, error: null, prompt, imageId };
   } catch (e) {
     console.error(e);
     return { imageUrl: null, error: 'Failed to generate image. The AI might be having a moment. Please try again.', prompt, imageId: null };
