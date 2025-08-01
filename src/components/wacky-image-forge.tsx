@@ -41,15 +41,17 @@ export default function WackyImageForge() {
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   const T = translations[language];
 
   // Derive storage key from user ID. This is crucial.
   const storageKey = useMemo(() => user ? `wackyGallery_${user.uid}` : null, [user]);
   
-  // Load gallery from localStorage only when the storageKey is available
+  // Load gallery from localStorage only when the storageKey is available and auth is no longer loading
   useEffect(() => {
+    if (loading) return; // Do nothing while authentication is loading
+
     if (storageKey) {
         try {
             const savedImages = localStorage.getItem(storageKey);
@@ -66,7 +68,7 @@ export default function WackyImageForge() {
         // If there's no user, the gallery should be empty.
         setGalleryImages([]);
     }
-  }, [storageKey]);
+  }, [storageKey, loading]);
 
   // Effect to scroll to the image area after generation
   useEffect(() => {
