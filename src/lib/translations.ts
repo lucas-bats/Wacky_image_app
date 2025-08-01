@@ -26,9 +26,10 @@ export const translations = {
       subtitle: 'Let your imagination run wild!',
     },
     gallery: {
-      title: 'Community Gallery',
+      title: 'My Gallery',
       empty: 'No images yet. Be the first to create one!',
       modalTitle: 'Creation Details',
+      deleteButton: 'Delete Image',
     },
     toast: {
       noKeywords: {
@@ -52,7 +53,13 @@ export const translations = {
       },
       galleryFailed: {
         title: "Gallery Failed",
-        description: "Could not load the community gallery.",
+        description: "Could not load your gallery from your browser's storage.",
+      },
+      deleteSuccess: {
+        title: "Image deleted!",
+      },
+      deleteFailed: {
+        title: "Delete Failed",
       }
     },
     categoryNames: {
@@ -150,9 +157,10 @@ export const translations = {
       subtitle: 'Deixe sua imaginação voar!',
     },
     gallery: {
-      title: 'Galeria da Comunidade',
+      title: 'Minha Galeria',
       empty: 'Nenhuma imagem ainda. Seja o primeiro a criar uma!',
       modalTitle: 'Detalhes da Criação',
+      deleteButton: 'Apagar Imagem',
     },
     toast: {
       noKeywords: {
@@ -176,7 +184,13 @@ export const translations = {
       },
       galleryFailed: {
         title: "Falha na Galeria",
-        description: "Não foi possível carregar a galeria da comunidade.",
+        description: "Não foi possível carregar sua galeria do armazenamento do navegador.",
+      },
+      deleteSuccess: {
+        title: "Imagem apagada!",
+      },
+      deleteFailed: {
+        title: "Falha ao Apagar",
       }
     },
     categoryNames: {

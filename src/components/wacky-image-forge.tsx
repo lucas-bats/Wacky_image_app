@@ -5,7 +5,7 @@ import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from '
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { generateImageAction, generateChaosPromptAction, getGalleryImages, GalleryImage } from '@/app/actions';
+import { generateImageAction, generateChaosPromptAction, GalleryImage } from '@/app/actions';
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
@@ -35,21 +35,23 @@ export default function WackyImageForge() {
   const T = translations[language];
   
   useEffect(() => {
-    startTransition(async () => {
-      const { images, error } = await getGalleryImages();
-      if (error) {
-        console.error(error);
-        toast({
-          title: T.toast.galleryFailed.title,
-          description: error,
-          variant: "destructive",
-          duration: 10000,
-        });
-      } else if (images) {
+    try {
+      const storedImages = localStorage.getItem('galleryImages');
+      if (storedImages) {
+        const images: GalleryImage[] = JSON.parse(storedImages);
+        // Sort by date, newest first
+        images.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         setGalleryImages(images);
       }
-    });
-  }, []);
+    } catch (error) {
+      console.error("Failed to load gallery from localStorage", error);
+      toast({
+        title: T.toast.galleryFailed.title,
+        description: T.toast.galleryFailed.description,
+        variant: "destructive",
+      });
+    }
+  }, [T.toast.galleryFailed.title, T.toast.galleryFailed.description, toast]);
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -172,13 +174,6 @@ export default function WackyImageForge() {
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
     
-    // Find the English version of the keyword to get its emoji
-    const langT = translations[language];
-    const enT = translations.en;
-    
-    const categoryKey = Object.keys(langT.categoryNames).find(k => langT.categoryNames[k as Category] === category) as Category;
-    const keywordKey = Object.keys(langT.keywordCategories[categoryKey].keywords).find(k => langT.keywordCategories[categoryKey].keywords[k as keyof typeof langT.keywordCategories[Category]['keywords']] === keyword);
-    
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
     } else {
@@ -215,6 +210,28 @@ export default function WackyImageForge() {
     return englishKeywords;
   };
 
+  const saveImageToGallery = (imageUrl: string, prompt: string) => {
+    try {
+      const newImage: GalleryImage = {
+        id: new Date().toISOString(),
+        imageUrl,
+        prompt,
+        createdAt: new Date().toISOString(),
+      };
+      
+      const updatedGallery = [newImage, ...galleryImages];
+      setGalleryImages(updatedGallery);
+      localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+    } catch (error) {
+      console.error("Failed to save image to localStorage", error);
+      toast({
+        title: "Failed to save to gallery",
+        description: "Your browser's storage might be full.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
       toast({
@@ -237,15 +254,8 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        // Add to gallery locally for instant update
         if (imageUrl) {
-          const newGalleryItem: GalleryImage = {
-            id: new Date().toISOString(), // Temporary ID
-            imageUrl: imageUrl,
-            prompt: finalizedPrompt,
-            createdAt: new Date(),
-          };
-          setGalleryImages(prev => [newGalleryItem, ...prev]);
+          saveImageToGallery(imageUrl, finalizedPrompt);
         }
       }
     });
@@ -335,6 +345,21 @@ export default function WackyImageForge() {
     }
   };
 
+  const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the dialog from opening
+    try {
+      const updatedGallery = galleryImages.filter(img => img.id !== id);
+      setGalleryImages(updatedGallery);
+      localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+      toast({
+        title: T.toast.deleteSuccess.title,
+      });
+    } catch (error) {
+        console.error("Failed to delete image from localStorage", error);
+        toast({ title: T.toast.deleteFailed.title, variant: "destructive" });
+    }
+  };
+
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
@@ -370,8 +395,10 @@ export default function WackyImageForge() {
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
       const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
-      const emoji = keywordCategories[T.categoryNames[categoryKey]].keywords[key];
-
+      const categoryName = T.categoryNames[categoryKey] as CategoryName;
+      const emojiCategory = keywordCategories[categoryName];
+      const emoji = emojiCategory?.keywords[key];
+      
       return (
         <Button
           key={keyword}
@@ -522,8 +549,17 @@ export default function WackyImageForge() {
           {galleryImages.map((item) => (
              <Dialog key={item.id}>
                 <DialogTrigger asChild>
-                    <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group">
+                    <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group relative">
                         <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
+                          onClick={(e) => handleDeleteFromGallery(item.id, e)}
+                        >
+                           <Trash2 className="h-4 w-4" />
+                           <span className="sr-only">{T.gallery.deleteButton}</span>
+                        </Button>
                     </Card>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl">
