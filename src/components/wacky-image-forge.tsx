@@ -6,18 +6,14 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
-  generateImageAction, 
-  getGalleryAction,
-  deleteImageAction,
-  GalleryImage
+  generateImageAction
 } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, LogOut } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from './auth-provider';
 import { generateChaosPromptAction } from '@/app/actions';
 
@@ -37,32 +33,9 @@ export default function WackyImageForge() {
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
-  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const { user, loading, logout } = useAuth();
-  const [isGalleryLoading, setIsGalleryLoading] = useState(true);
+  const { user, logout } = useAuth();
 
   const T = translations[language];
-
-  // Effect to load gallery from Firestore on user change
-  useEffect(() => {
-    if (user && !loading) {
-      setIsGalleryLoading(true);
-      getGalleryAction(user.uid)
-        .then(({ images, error }) => {
-          if (error) {
-            toast({ title: T.toast.galleryLoadFailed.title, description: error, variant: 'destructive' });
-          } else {
-            setGalleryImages(images);
-          }
-        })
-        .finally(() => setIsGalleryLoading(false));
-    } else if (!user && !loading) {
-      // If no user and not loading, clear gallery
-      setGalleryImages([]);
-      setIsGalleryLoading(false);
-    }
-  }, [user, loading, T.toast.galleryLoadFailed.title, toast]);
-
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -226,14 +199,12 @@ export default function WackyImageForge() {
       setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish();
       
-      const result = await generateImageAction(user.uid, englishKeywords, finalizedPrompt);
+      const result = await generateImageAction(englishKeywords);
       
       if (result.error) {
         toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
-        // Refetch gallery to show the new image immediately
-        getGalleryAction(user.uid).then(({ images }) => setGalleryImages(images));
       }
     });
   };
@@ -286,7 +257,6 @@ export default function WackyImageForge() {
   const handleDownload = async () => {
     if (!generatedImage) return;
     try {
-      // Use a cors proxy if direct fetch fails due to CORS policy on Firebase Storage
       const response = await fetch(generatedImage);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -294,7 +264,7 @@ export default function WackyImageForge() {
       a.href = url;
       a.download = `${currentPrompt.replace(/[ ,.]/g, '_').slice(0,50) || 'imagem-maluca'}.png`;
       document.body.appendChild(a);
-a.click();
+      a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
@@ -325,28 +295,6 @@ a.click();
         toast({ title: T.toast.shareFailed.title, description: T.toast.shareFailed.description, variant: "destructive" });
     }
   };
-  
-  const handleDeleteFromGallery = (image: GalleryImage, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!user) return;
-
-    startTransition(async () => {
-        const originalImages = galleryImages;
-        // Optimistic update
-        setGalleryImages(originalImages.filter((img) => img.id !== image.id));
-
-        const { success, error } = await deleteImageAction(user.uid, image);
-
-        if (!success) {
-            // Revert on failure
-            setGalleryImages(originalImages);
-            toast({ title: T.toast.deleteFailed.title, description: error, variant: "destructive" });
-        } else {
-            toast({ title: T.toast.deleteSuccess.title });
-        }
-    });
-  };
-
 
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
@@ -529,47 +477,6 @@ a.click();
            </div>
         </div>
       </main>
-
-      <section className="mt-16">
-        <h2 className="text-5xl font-black text-center text-foreground tracking-tighter mb-8">{T.gallery.title}</h2>
-        {isGalleryLoading ? (
-            <div className="flex justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            </div>
-        ) : galleryImages.length === 0 ? (
-            <div className="text-center text-muted-foreground font-body text-lg">{T.gallery.empty}</div>
-        ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {galleryImages.map((item) => (
-                <Dialog key={item.id}>
-                    <DialogTrigger asChild>
-                        <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group relative">
-                            <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
-                            <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
-                            onClick={(e) => handleDeleteFromGallery(item, e)}
-                            >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">{T.gallery.deleteButton}</span>
-                            </Button>
-                        </Card>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className='text-2xl'>{T.gallery.modalTitle}</DialogTitle>
-                        <DialogDescription className='font-body text-base'>{item.prompt}</DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        <Image src={item.imageUrl} alt={item.prompt} width={1024} height={1024} className="w-full h-auto rounded-lg bg-muted" data-ai-hint="gallery image large" />
-                    </div>
-                    </DialogContent>
-                </Dialog>
-            ))}
-            </div>
-        )}
-      </section>
     </div>
   );
 }
