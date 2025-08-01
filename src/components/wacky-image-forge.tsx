@@ -46,6 +46,7 @@ export default function WackyImageForge() {
   const { user, loading, logout } = useAuth();
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [storageKey, setStorageKey] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const T = translations[language];
 
@@ -70,12 +71,14 @@ export default function WackyImageForge() {
         }
       } catch (error) {
         console.error("Failed to load gallery from localStorage", error);
+        toast({ title: T.toast.galleryLoadFailed.title, variant: 'destructive' });
         setGalleryImages([]);
       }
     } else {
        setGalleryImages([]);
     }
-  }, [storageKey, loading]);
+    setHasLoaded(true);
+  }, [storageKey, loading, T.toast.galleryLoadFailed.title, toast]);
   
 
   useEffect(() => {
@@ -84,6 +87,19 @@ export default function WackyImageForge() {
       setShouldScroll(false);
     }
   }, [generatedImage, shouldScroll]);
+  
+  useEffect(() => {
+    if (!hasLoaded || !storageKey) return;
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(galleryImages));
+    } catch (e) {
+         toast({
+          title: T.toast.gallerySaveFailed.title,
+          description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
+          variant: "destructive",
+        });
+    }
+  }, [galleryImages, storageKey, hasLoaded, T.toast.gallerySaveFailed.title, toast])
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -218,35 +234,7 @@ export default function WackyImageForge() {
     });
     return englishKeywords;
   };
-
-  const saveToGallery = (imageSrc: string, prompt: string) => {
-    if (!storageKey) return;
-
-    const newImage: GalleryImage = {
-      id: new Date().toISOString(),
-      src: imageSrc,
-      prompt: prompt,
-      createdAt: new Date().toISOString(),
-    };
-
-    setGalleryImages(prevImages => {
-      const updatedImages = [newImage, ...prevImages];
-      if (updatedImages.length > GALLERY_LIMIT) {
-        updatedImages.pop(); 
-      }
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(updatedImages));
-      } catch (e) {
-        toast({
-          title: "Gallery Full",
-          description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
-          variant: "destructive",
-        });
-      }
-      return updatedImages;
-    });
-  };
-
+  
   const handleGenerate = () => {
     if (!user) {
         toast({ title: "Authentication Error", description: "You must be logged in to generate images.", variant: "destructive" });
@@ -274,7 +262,21 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
-        saveToGallery(result.imageUrl, finalizedPrompt);
+        
+        const newImage: GalleryImage = {
+            id: new Date().toISOString(),
+            src: result.imageUrl,
+            prompt: finalizedPrompt,
+            createdAt: new Date().toISOString(),
+        };
+
+        setGalleryImages(prevImages => {
+            const updatedImages = [newImage, ...prevImages];
+            if (updatedImages.length > GALLERY_LIMIT) {
+                updatedImages.pop();
+            }
+            return updatedImages;
+        });
       }
     });
   };
@@ -368,15 +370,7 @@ export default function WackyImageForge() {
 
   const handleDeleteFromGallery = (id: string) => {
     if (!storageKey) return;
-    setGalleryImages(prevImages => {
-      const updatedImages = prevImages.filter(img => img.id !== id);
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(updatedImages));
-      } catch (error) {
-        toast({ title: T.toast.deleteFailed.title, description: T.toast.deleteFailed.description, variant: "destructive" });
-      }
-      return updatedImages;
-    });
+    setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
     toast({ title: T.toast.deleteSuccess.title });
   }
 
