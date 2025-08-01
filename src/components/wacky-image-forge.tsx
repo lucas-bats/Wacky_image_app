@@ -5,7 +5,14 @@ import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from '
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { generateImageAction, generateChaosPromptAction } from '@/app/actions';
+import { 
+  generateImageAction, 
+  generateChaosPromptAction, 
+  getGalleryAction,
+  saveImageToGalleryAction,
+  deleteImageAction,
+  GalleryImage
+} from '@/app/actions';
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
@@ -21,15 +28,6 @@ type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
 type Category = keyof KeywordCategories;
 type CategoryName = (typeof translations)[Language]['categoryNames'][Category];
 
-interface GalleryImage {
-  id: string;
-  imageUrl: string;
-  prompt: string;
-  createdAt: string;
-}
-
-const MAX_GALLERY_IMAGES = 12;
-
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
   const [selectedKeywords, setSelectedKeywords] = useState<Map<CategoryName, string>>(new Map());
@@ -41,56 +39,30 @@ export default function WackyImageForge() {
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const { user, loading, logout } = useAuth();
+  const [isGalleryLoading, setIsGalleryLoading] = useState(true);
 
   const T = translations[language];
 
-  const storageKey = useMemo(() => user ? `wackyGallery_${user.uid}` : null, [user]);
-
-  // Effect to load from localStorage on mount
+  // Effect to load gallery from Firestore on user change
   useEffect(() => {
-    if (loading) return; 
-
-    if (storageKey) {
-        try {
-            const savedImages = localStorage.getItem(storageKey);
-            if (savedImages) {
-                setGalleryImages(JSON.parse(savedImages));
-            } else {
-                setGalleryImages([]);
-            }
-        } catch (error) {
-            console.error("Could not load images from localStorage", error);
-            setGalleryImages([]);
-        } finally {
-            setHasLoadedFromStorage(true);
-        }
-    } else {
-        // If there's no user, clear the gallery to avoid showing previous user's data
-        setGalleryImages([]);
+    if (user && !loading) {
+      setIsGalleryLoading(true);
+      getGalleryAction(user.uid)
+        .then(({ images, error }) => {
+          if (error) {
+            toast({ title: T.toast.galleryLoadFailed.title, description: error, variant: 'destructive' });
+          } else {
+            setGalleryImages(images);
+          }
+        })
+        .finally(() => setIsGalleryLoading(false));
+    } else if (!loading) {
+      // If no user, clear gallery
+      setGalleryImages([]);
+      setIsGalleryLoading(false);
     }
-  }, [storageKey, loading]);
-  
-  // Effect to save to localStorage whenever galleryImages changes, after initial load
-  useEffect(() => {
-    if (!hasLoadedFromStorage || !storageKey) return;
-
-    try {
-      const updatedGallery = galleryImages.slice(0, MAX_GALLERY_IMAGES);
-      localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-        toast({
-            title: T.toast.storageFull.title,
-            description: T.toast.storageFull.description,
-            variant: "destructive",
-        });
-      } else {
-        console.error("Could not save to localStorage", e);
-      }
-    }
-  }, [galleryImages, storageKey, hasLoadedFromStorage, toast, T.toast.storageFull]);
+  }, [user, loading, T.toast.galleryLoadFailed, toast]);
 
 
   useEffect(() => {
@@ -235,6 +207,7 @@ export default function WackyImageForge() {
   };
 
   const handleGenerate = () => {
+    if (!user) return;
     if (selectedKeywords.size === 0) {
       toast({
         title: T.toast.noKeywords.title,
@@ -254,16 +227,15 @@ export default function WackyImageForge() {
       const { imageUrl, error } = await generateImageAction(englishKeywords, finalizedPrompt);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
-      } else {
+      } else if (imageUrl) {
         setGeneratedImage(imageUrl);
-        if (imageUrl) {
-            const newImage: GalleryImage = {
-                id: new Date().toISOString(),
-                imageUrl,
-                prompt: finalizedPrompt,
-                createdAt: new Date().toISOString(),
-            };
-            setGalleryImages(prevImages => [newImage, ...prevImages]);
+        const { success, error: saveError } = await saveImageToGalleryAction(user.uid, { imageUrl, prompt: finalizedPrompt });
+        if (saveError) {
+          toast({ title: T.toast.gallerySaveFailed.title, description: saveError, variant: "destructive" });
+        } else {
+          // Refetch gallery to show the new image
+          const { images } = await getGalleryAction(user.uid);
+          setGalleryImages(images);
         }
       }
     });
@@ -357,12 +329,23 @@ export default function WackyImageForge() {
   };
   
   const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (!storageKey) return;
-    const updatedGallery = galleryImages.filter((img) => img.id !== id);
-    setGalleryImages(updatedGallery);
-    toast({
-        title: T.toast.deleteSuccess.title,
+    e.stopPropagation();
+    if (!user) return;
+
+    startTransition(async () => {
+        const originalImages = galleryImages;
+        // Optimistic update
+        setGalleryImages(originalImages.filter((img) => img.id !== id));
+
+        const { success, error } = await deleteImageAction(user.uid, id);
+
+        if (!success) {
+            // Revert on failure
+            setGalleryImages(originalImages);
+            toast({ title: T.toast.deleteFailed.title, description: error, variant: "destructive" });
+        } else {
+            toast({ title: T.toast.deleteSuccess.title });
+        }
     });
   };
 
@@ -551,7 +534,11 @@ export default function WackyImageForge() {
 
       <section className="mt-16">
         <h2 className="text-5xl font-black text-center text-foreground tracking-tighter mb-8">{T.gallery.title}</h2>
-        {galleryImages.length === 0 ? (
+        {isGalleryLoading ? (
+            <div className="flex justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            </div>
+        ) : galleryImages.length === 0 ? (
             <div className="text-center text-muted-foreground font-body text-lg">{T.gallery.empty}</div>
         ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -588,5 +575,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    

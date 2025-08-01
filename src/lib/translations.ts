@@ -57,9 +57,11 @@ export const translations = {
       deleteFailed: {
         title: "Delete Failed",
       },
-      storageFull: {
-        title: "Gallery Full",
-        description: "The oldest image was removed to make space.",
+      galleryLoadFailed: {
+        title: 'Failed to load gallery',
+      },
+      gallerySaveFailed: {
+          title: 'Failed to save to gallery'
       }
     },
     categoryNames: {
@@ -205,9 +207,11 @@ export const translations = {
       deleteFailed: {
         title: "Falha ao Apagar",
       },
-      storageFull: {
-        title: "Galeria Cheia",
-        description: "A imagem mais antiga foi removida para liberar espaço.",
+      galleryLoadFailed: {
+        title: 'Falha ao carregar a galeria',
+      },
+      gallerySaveFailed: {
+          title: 'Falha ao salvar na galeria'
       }
     },
     categoryNames: {
