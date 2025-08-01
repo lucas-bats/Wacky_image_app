@@ -45,12 +45,10 @@ export default function WackyImageForge() {
 
   const T = translations[language];
 
-  // Derive storage key from user ID. This is crucial.
   const storageKey = useMemo(() => user ? `wackyGallery_${user.uid}` : null, [user]);
-  
-  // Load gallery from localStorage only when the storageKey is available and auth is no longer loading
+
   useEffect(() => {
-    if (loading) return; // Do nothing while authentication is loading
+    if (loading) return; 
 
     if (storageKey) {
         try {
@@ -58,19 +56,38 @@ export default function WackyImageForge() {
             if (savedImages) {
                 setGalleryImages(JSON.parse(savedImages));
             } else {
-                setGalleryImages([]); // Clear gallery if no user-specific data is found
+                setGalleryImages([]);
             }
         } catch (error) {
             console.error("Could not load images from localStorage", error);
             setGalleryImages([]);
         }
     } else {
-        // If there's no user, the gallery should be empty.
         setGalleryImages([]);
     }
   }, [storageKey, loading]);
+  
+  // Effect to save to localStorage whenever galleryImages changes
+  useEffect(() => {
+    if (storageKey) {
+      try {
+        const updatedGallery = galleryImages.slice(0, MAX_GALLERY_IMAGES);
+        localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+          toast({
+              title: T.toast.storageFull.title,
+              description: T.toast.storageFull.description,
+              variant: "destructive",
+          });
+        } else {
+          console.error("Could not save to localStorage", e);
+        }
+      }
+    }
+  }, [galleryImages, storageKey, toast, T.toast.storageFull]);
 
-  // Effect to scroll to the image area after generation
+
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
       imageAreaRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -234,31 +251,14 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        if (imageUrl && storageKey) {
+        if (imageUrl) {
             const newImage: GalleryImage = {
                 id: new Date().toISOString(),
                 imageUrl,
                 prompt: finalizedPrompt,
                 createdAt: new Date().toISOString(),
             };
-            
-            setGalleryImages(prevImages => {
-                const updatedGallery = [newImage, ...prevImages].slice(0, MAX_GALLERY_IMAGES);
-                try {
-                    localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
-                } catch (e) {
-                    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                        toast({
-                            title: T.toast.storageFull.title,
-                            description: T.toast.storageFull.description,
-                            variant: "destructive",
-                        });
-                    } else {
-                        console.error("Could not save to localStorage", e);
-                    }
-                }
-                return updatedGallery;
-            });
+            setGalleryImages(prevImages => [newImage, ...prevImages]);
         }
       }
     });
@@ -356,7 +356,6 @@ export default function WackyImageForge() {
     if (!storageKey) return;
     const updatedGallery = galleryImages.filter((img) => img.id !== id);
     setGalleryImages(updatedGallery);
-    localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
     toast({
         title: T.toast.deleteSuccess.title,
     });
@@ -584,3 +583,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
