@@ -34,12 +34,11 @@ export default function WackyImageForge() {
   const T = translations[language];
 
   useEffect(() => {
-    // This effect runs after the state has been updated and the UI has re-rendered.
-    if (shouldScroll) {
-      imageAreaRef.current?.scrollIntoView({ behavior: 'smooth' });
-      setShouldScroll(false); // Reset after scrolling to avoid re-scrolling
+    if (shouldScroll && imageAreaRef.current) {
+      imageAreaRef.current.scrollIntoView({ behavior: 'smooth' });
+      setShouldScroll(false);
     }
-  }, [isPending, shouldScroll, generatedImage]);
+  }, [isPending, shouldScroll]);
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -134,7 +133,7 @@ export default function WackyImageForge() {
     const promptParts = mainKeywords.join(', ');
     return style ? `A ${promptParts}, in ${style} style` : `A ${promptParts}`;
 
-  }, [selectedKeywords, categoryOrder, language, T.categoryNames.Styles]);
+  }, [selectedKeywords, categoryOrder, language, T]);
 
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
@@ -156,19 +155,16 @@ export default function WackyImageForge() {
     const enTranslations = translations.en;
 
     keywords.forEach((value, key) => {
-        // Find the category key ('Animals', 'Actions', etc.) in the current language
         const categoryKey = Object.keys(langTranslations.categoryNames).find(
             (k) => langTranslations.categoryNames[k as Category] === key
         ) as Category | undefined;
 
         if (categoryKey) {
-            // Find the keyword key ('T-rex', 'eating spaghetti', etc.) in the current language
             const keywordKey = Object.keys(langTranslations.keywordCategories[categoryKey].keywords).find(
                 (k) => langTranslations.keywordCategories[categoryKey].keywords[k as keyof typeof langTranslations.keywordCategories[Category]['keywords']] === value
             );
 
             if (keywordKey) {
-                // Get the English keyword using the found key
                 const englishKeyword = enTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof enTranslations.keywordCategories[Category]['keywords']];
                 englishKeywords.push(englishKeyword);
             }
@@ -189,8 +185,8 @@ export default function WackyImageForge() {
     
     setShouldScroll(true);
     startTransition(async () => {
-      setGeneratedImage(null); // Clear previous image
-      setCurrentPrompt(promptText); // Set the current prompt text for display
+      setGeneratedImage(null);
+      setCurrentPrompt(promptText);
       const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
       const { imageUrl, error } = await generateImageAction(englishKeywords);
@@ -266,7 +262,6 @@ export default function WackyImageForge() {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
 
-    // Translate selected keywords to the new language
     const newSelectedKeywords = new Map<CategoryName, string>();
     const oldLang = translations[language];
     const newLangTranslations = translations[newLang];
@@ -399,3 +394,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
