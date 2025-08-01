@@ -160,8 +160,6 @@ export default function WackyImageForge() {
     const categoryKey = Object.keys(langT.categoryNames).find(k => langT.categoryNames[k as Category] === category) as Category;
     const keywordKey = Object.keys(langT.keywordCategories[categoryKey].keywords).find(k => langT.keywordCategories[categoryKey].keywords[k as keyof typeof langT.keywordCategories[Category]['keywords']] === keyword);
     
-    const emoji = keywordKey ? keywordCategories[T.categoryNames.Animals].keywords[keywordKey] : '';
-
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
     } else {
@@ -341,7 +339,7 @@ export default function WackyImageForge() {
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
-      const emoji = keywordCategories[T.categoryNames.Animals].keywords[key];
+      const emoji = keywordCategories[category].keywords[key];
       return (
         <Button
           key={keyword}
@@ -485,5 +483,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
