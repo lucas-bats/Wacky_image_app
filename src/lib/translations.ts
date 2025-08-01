@@ -88,7 +88,7 @@ export const translations = {
           'in a neon-lit city': 'in a neon-lit city',
           'inside a volcano': 'inside a volcano',
           'at a disco': 'at a disco',
-          'in a library of lost books': 'in a library of lost books',
+          'in a library': 'in a library',
           'on a pirate ship': 'on a pirate ship',
         },
       },
@@ -198,7 +198,7 @@ export const translations = {
           'in a neon-lit city': 'numa cidade neon',
           'inside a volcano': 'dentro de um vulcão',
           'at a disco': 'numa discoteca',
-          'in a library of lost books': 'numa biblioteca de livros perdidos',
+          'in a library': 'numa biblioteca',
           'on a pirate ship': 'num navio pirata',
         },
       },
@@ -208,7 +208,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'fotorrealista': 'fotorrealista',
+          'photorealistic': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
@@ -220,5 +220,3 @@ export const translations = {
     }
   },
 };
-
-    
