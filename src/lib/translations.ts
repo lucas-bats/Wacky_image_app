@@ -26,7 +26,8 @@ export const translations = {
       subtitle: 'Let your imagination run wild!',
     },
     gallery: {
-      title: 'My Gallery',
+      title: 'Public Gallery',
+      loading: 'Loading gallery...',
       empty: 'No images yet. Be the first to create one!',
       modalTitle: 'Creation Details',
       deleteButton: 'Delete Image',
@@ -53,7 +54,7 @@ export const translations = {
       },
       galleryFailed: {
         title: "Gallery Failed",
-        description: "Could not load your gallery from your browser's storage.",
+        description: "Could not load the public gallery. Check Firestore setup.",
       },
       deleteSuccess: {
         title: "Image deleted!",
@@ -174,7 +175,8 @@ export const translations = {
       subtitle: 'Deixe sua imaginação voar!',
     },
     gallery: {
-      title: 'Minha Galeria',
+      title: 'Galeria Pública',
+      loading: 'Carregando galeria...',
       empty: 'Nenhuma imagem ainda. Seja o primeiro a criar uma!',
       modalTitle: 'Detalhes da Criação',
       deleteButton: 'Apagar Imagem',
@@ -201,7 +203,7 @@ export const translations = {
       },
       galleryFailed: {
         title: "Falha na Galeria",
-        description: "Não foi possível carregar sua galeria do armazenamento do navegador.",
+        description: "Não foi possível carregar a galeria pública. Verifique a configuração do Firestore.",
       },
       deleteSuccess: {
         title: "Imagem apagada!",
@@ -244,7 +246,7 @@ export const translations = {
           'coding': 'programando',
           'juggling planets': 'malabarando planetas',
           'riding a monocycle': 'andando de monociclo',
-          'breathing fire': 'soltando fogo pela boca',
+          'soltando fogo pela boca': 'soltando fogo pela boca',
         },
       },
       Settings: {

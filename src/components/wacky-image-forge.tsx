@@ -5,7 +5,7 @@ import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from '
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { generateImageAction, generateChaosPromptAction, GalleryImage } from '@/app/actions';
+import { generateImageAction, generateChaosPromptAction, GalleryImage, getPublicGalleryAction, deleteImageAction } from '@/app/actions';
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
@@ -27,32 +27,35 @@ export default function WackyImageForge() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
+  const [isGalleryLoading, setIsGalleryLoading] = useState(true);
   const [shouldScroll, setShouldScroll] = useState(false);
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   const T = translations[language];
   
   useEffect(() => {
-    try {
-      const storedImages = localStorage.getItem('galleryImages');
-      if (storedImages) {
-        const images: GalleryImage[] = JSON.parse(storedImages);
-        // Sort by date, newest first
-        images.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setGalleryImages(images);
-      }
-    } catch (error) {
-      console.error("Failed to load gallery from localStorage", error);
-      toast({
-        title: T.toast.galleryFailed.title,
-        description: T.toast.galleryFailed.description,
-        variant: "destructive",
-      });
+    const fetchGallery = async () => {
+        setIsGalleryLoading(true);
+        const { images, error } = await getPublicGalleryAction();
+        if (error || !images) {
+            console.error(error);
+            toast({
+                title: T.toast.galleryFailed.title,
+                description: T.toast.galleryFailed.description,
+                variant: "destructive",
+            });
+        } else {
+             // Sort by date, newest first
+            images.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            setGalleryImages(images);
+        }
+        setIsGalleryLoading(false);
     }
+    fetchGallery();
   }, [T.toast.galleryFailed.title, T.toast.galleryFailed.description, toast]);
 
   useEffect(() => {
@@ -212,28 +215,6 @@ export default function WackyImageForge() {
     return englishKeywords;
   };
 
-  const saveImageToGallery = (imageUrl: string, prompt: string) => {
-    try {
-      const newImage: GalleryImage = {
-        id: new Date().toISOString(),
-        imageUrl,
-        prompt,
-        createdAt: new Date().toISOString(),
-      };
-      
-      const updatedGallery = [newImage, ...galleryImages];
-      setGalleryImages(updatedGallery);
-      localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
-    } catch (error) {
-      console.error("Failed to save image to localStorage", error);
-      toast({
-        title: "Failed to save to gallery",
-        description: "Your browser's storage might be full.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
       toast({
@@ -251,13 +232,21 @@ export default function WackyImageForge() {
       setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
-      const { imageUrl, error } = await generateImageAction(englishKeywords);
+      const { imageUrl, error } = await generateImageAction(englishKeywords, finalizedPrompt, user?.uid || null);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        if (imageUrl) {
-          saveImageToGallery(imageUrl, finalizedPrompt);
+        if (imageUrl && user) {
+            // Add to local state immediately for instant feedback
+            const newImage: GalleryImage = {
+                id: new Date().toISOString(), // Temporary ID
+                imageUrl,
+                prompt: finalizedPrompt,
+                createdAt: new Date().toISOString(),
+                userId: user.uid,
+            };
+            setGalleryImages(prev => [newImage, ...prev]);
         }
       }
     });
@@ -276,7 +265,11 @@ export default function WackyImageForge() {
         
         const findKeyByValue = (obj: {[key: string]: string}, value: string) => {
             if (!value) return undefined;
-            return Object.keys(obj).find(key => obj[key].toLowerCase() === value.toLowerCase());
+            const V = value.toLowerCase().trim();
+            for (const key in obj) {
+              if(obj[key].toLowerCase().trim() === V) return key;
+            }
+            return undefined;
         }
         
         const enCategories = translations.en.keywordCategories;
@@ -347,18 +340,16 @@ export default function WackyImageForge() {
     }
   };
 
-  const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
+  const handleDeleteFromGallery = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the dialog from opening
-    try {
-      const updatedGallery = galleryImages.filter(img => img.id !== id);
-      setGalleryImages(updatedGallery);
-      localStorage.setItem('galleryImages', JSON.stringify(updatedGallery));
+    const { success, error } = await deleteImageAction(id, user?.uid || null);
+    if(success) {
+      setGalleryImages(prev => prev.filter(img => img.id !== id));
       toast({
         title: T.toast.deleteSuccess.title,
       });
-    } catch (error) {
-        console.error("Failed to delete image from localStorage", error);
-        toast({ title: T.toast.deleteFailed.title, variant: "destructive" });
+    } else {
+      toast({ title: T.toast.deleteFailed.title, description: error, variant: "destructive" });
     }
   };
 
@@ -391,18 +382,18 @@ export default function WackyImageForge() {
   };
 
   const renderKeywordButtons = (category: CategoryName) => {
-    const translatedKeywords = T.keywordCategories[Object.keys(T.categoryNames).find(key => T.categoryNames[key as Category] === category) as Category].keywords;
+    const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
+    const translatedKeywords = T.keywordCategories[categoryKey].keywords;
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
-      const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
       const emojiCategory = keywordCategories[T.categoryNames[categoryKey] as CategoryName];
       const emoji = emojiCategory?.keywords[key];
       
       return (
         <Button
           key={keyword}
-          onClick={() => handleKeywordClick(category, keyword)}
+          onClick={() => handleKeywordClick(category, keyword as string)}
           className={cn(
             'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
             isSelected
@@ -411,7 +402,7 @@ export default function WackyImageForge() {
           )}
         >
           <span className="w-8 h-8 mr-3 flex items-center justify-center text-3xl">{emoji}</span>
-          <span className="font-body">{keyword}</span>
+          <span className="font-body">{keyword as string}</span>
         </Button>
       );
     });
@@ -546,38 +537,46 @@ export default function WackyImageForge() {
 
       <section className="mt-16">
         <h2 className="text-5xl font-black text-center text-foreground tracking-tighter mb-8">{T.gallery.title}</h2>
-        {galleryImages.length === 0 && !isPending && (
+        {isGalleryLoading ? (
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+              <p className="text-muted-foreground mt-2">{T.gallery.loading}</p>
+            </div>
+        ) : galleryImages.length === 0 ? (
             <div className="text-center text-muted-foreground font-body text-lg">{T.gallery.empty}</div>
+        ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {galleryImages.map((item) => (
+                <Dialog key={item.id}>
+                    <DialogTrigger asChild>
+                        <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group relative">
+                            <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
+                            {user?.uid === item.userId && (
+                                <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
+                                onClick={(e) => handleDeleteFromGallery(item.id, e)}
+                                >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">{T.gallery.deleteButton}</span>
+                                </Button>
+                            )}
+                        </Card>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className='text-2xl'>{T.gallery.modalTitle}</DialogTitle>
+                        <DialogDescription className='font-body text-base'>{item.prompt}</DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        <Image src={item.imageUrl} alt={item.prompt} width={1024} height={1024} className="w-full h-auto rounded-lg bg-muted" data-ai-hint="gallery image large" />
+                    </div>
+                    </DialogContent>
+                </Dialog>
+            ))}
+            </div>
         )}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {galleryImages.map((item) => (
-             <Dialog key={item.id}>
-                <DialogTrigger asChild>
-                    <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group relative">
-                        <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
-                          onClick={(e) => handleDeleteFromGallery(item.id, e)}
-                        >
-                           <Trash2 className="h-4 w-4" />
-                           <span className="sr-only">{T.gallery.deleteButton}</span>
-                        </Button>
-                    </Card>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle className='text-2xl'>{T.gallery.modalTitle}</DialogTitle>
-                    <DialogDescription className='font-body text-base'>{item.prompt}</DialogDescription>
-                  </DialogHeader>
-                  <div className="mt-4">
-                    <Image src={item.imageUrl} alt={item.prompt} width={1024} height={1024} className="w-full h-auto rounded-lg bg-muted" data-ai-hint="gallery image large" />
-                  </div>
-                </DialogContent>
-              </Dialog>
-          ))}
-        </div>
       </section>
     </div>
   );
