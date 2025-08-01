@@ -26,6 +26,14 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
   return generateImageFlow(input);
 }
 
+const imageGenerationPrompt = ai.definePrompt(
+  {
+    name: 'wackyImagePrompt',
+    input: { schema: GenerateImageInputSchema },
+    prompt: `A {{#each keywords}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}, in a wacky and fun style.`,
+  },
+);
+
 const generateImageFlow = ai.defineFlow(
   {
     name: 'generateImageFlow',
@@ -37,7 +45,7 @@ const generateImageFlow = ai.defineFlow(
       // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
 
-      prompt: `A ${input.keywords.join(', ')}, in a wacky and fun style.`,
+      prompt: await imageGenerationPrompt(input),
 
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
