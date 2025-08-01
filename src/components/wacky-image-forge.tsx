@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { generateImageAction, generateChaosPromptAction } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -283,6 +283,30 @@ export default function WackyImageForge() {
     }
   };
 
+  const handleShare = async () => {
+    if (!generatedImage) return;
+
+    try {
+        const response = await fetch(generatedImage);
+        const blob = await response.blob();
+        const file = new File([blob], `${currentPrompt.replace(/[ ,.]/g, '_').slice(0,50) || 'imagem-maluca'}.png`, { type: blob.type });
+
+        if (navigator.share) {
+            await navigator.share({
+                title: T.title,
+                text: currentPrompt,
+                files: [file],
+            });
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            handleDownload();
+        }
+    } catch (error) {
+        console.error("Sharing failed", error);
+        toast({ title: T.toast.shareFailed.title, description: T.toast.shareFailed.description, variant: "destructive" });
+    }
+  };
+
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
@@ -433,6 +457,7 @@ export default function WackyImageForge() {
                   <CardFooter className="flex-wrap gap-2 p-4 bg-muted/50">
                       <Button onClick={handleDownload} className="rounded-lg text-lg h-12 border-b-4 border-blue-800 hover:border-b-2"><Download className="mr-2"/>{T.imageCard.save}</Button>
                       <Button onClick={handleRemix} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Repeat className="mr-2"/>{T.imageCard.remix}</Button>
+                      <Button onClick={handleShare} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Share2 className="mr-2"/>{T.imageCard.share}</Button>
                   </CardFooter>
               </Card>
             )}

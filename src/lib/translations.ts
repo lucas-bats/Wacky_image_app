@@ -18,6 +18,7 @@ export const translations = {
       title: 'Behold!',
       save: 'Save',
       remix: 'Remix',
+      share: 'Share',
     },
     placeholderCard: {
       title: 'Your creation will appear here',
@@ -39,6 +40,10 @@ export const translations = {
         title: "Download Failed",
         description: "Could not download the image.",
       },
+      shareFailed: {
+        title: "Share Failed",
+        description: "Could not share the image.",
+      }
     },
     categoryNames: {
       Animals: 'Animals',
@@ -128,6 +133,7 @@ export const translations = {
       title: 'Contemple!',
       save: 'Salvar',
       remix: 'Remixar',
+      share: 'Compartilhar',
     },
     placeholderCard: {
       title: 'Sua criação aparecerá aqui',
@@ -149,6 +155,10 @@ export const translations = {
         title: "Falha no Download",
         description: "Não foi possível baixar a imagem.",
       },
+      shareFailed: {
+        title: "Falha ao Compartilhar",
+        description: "Não foi possível compartilhar a imagem.",
+      }
     },
     categoryNames: {
       Animals: 'Animais',
