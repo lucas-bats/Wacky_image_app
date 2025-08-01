@@ -10,6 +10,9 @@ import { Sparkles, Wand2, Download, Repeat, Loader2, Languages } from 'lucide-re
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMediaQuery } from "@/hooks/use-media-query"
+
 
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
@@ -25,6 +28,7 @@ export default function WackyImageForge() {
   const [shouldScroll, setShouldScroll] = useState(false);
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)")
 
   const T = translations[language];
 
@@ -280,6 +284,32 @@ export default function WackyImageForge() {
     });
     setSelectedKeywords(newSelectedKeywords);
   };
+  
+  const renderKeywordSelector = (category: CategoryName) => (
+      <div key={category}>
+        <h2 className="text-3xl font-bold tracking-wider mb-4 md:hidden" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Object.entries(keywordCategories[category].keywords).map(([keyword, icon]) => {
+            const isSelected = selectedKeywords.get(category) === keyword;
+            return (
+              <Button
+                key={keyword}
+                onClick={() => handleKeywordClick(category, keyword)}
+                className={cn(
+                  'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
+                  isSelected
+                    ? `${keywordCategories[category].color} ${keywordCategories[category].textColor} border-yellow-300`
+                    : `bg-card text-card-foreground hover:bg-muted border-border`
+                )}
+              >
+                <span className="w-8 h-8 mr-3 flex items-center justify-center text-3xl">{icon}</span>
+                <span className="font-body">{keyword}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+  );
 
 
   return (
@@ -308,33 +338,29 @@ export default function WackyImageForge() {
               </Button>
             </div>
 
-          <div className="space-y-6">
-            {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
-              <div key={category}>
-                <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Object.entries(keywordCategories[category].keywords).map(([keyword, icon]) => {
-                    const isSelected = selectedKeywords.get(category) === keyword;
-                    return (
-                      <Button
-                        key={keyword}
-                        onClick={() => handleKeywordClick(category, keyword)}
-                        className={cn(
-                          'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
-                          isSelected
-                            ? `${keywordCategories[category].color} ${keywordCategories[category].textColor} border-yellow-300`
-                            : `bg-card text-card-foreground hover:bg-muted border-border`
-                        )}
-                      >
-                        <span className="w-8 h-8 mr-3 flex items-center justify-center text-3xl">{icon}</span>
-                        <span className="font-body">{keyword}</span>
-                      </Button>
-                    );
-                  })}
+          {isMobile ? (
+              <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+                  <TabsTrigger value={T.categoryNames.Animals}>{T.categoryNames.Animals}</TabsTrigger>
+                  <TabsTrigger value={T.categoryNames.Actions}>{T.categoryNames.Actions}</TabsTrigger>
+                  <TabsTrigger value={T.categoryNames.Settings}>{T.categoryNames.Settings}</TabsTrigger>
+                  <TabsTrigger value={T.categoryNames.Styles}>{T.categoryNames.Styles}</TabsTrigger>
+                </TabsList>
+                <TabsContent value={T.categoryNames.Animals}>{renderKeywordSelector(T.categoryNames.Animals)}</TabsContent>
+                <TabsContent value={T.categoryNames.Actions}>{renderKeywordSelector(T.categoryNames.Actions)}</TabsContent>
+                <TabsContent value={T.categoryNames.Settings}>{renderKeywordSelector(T.categoryNames.Settings)}</TabsContent>
+                <TabsContent value={T.categoryNames.Styles}>{renderKeywordSelector(T.categoryNames.Styles)}</TabsContent>
+              </Tabs>
+          ) : (
+            <div className="space-y-6">
+              {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
+                <div key={category}>
+                  <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
+                   {renderKeywordSelector(category)}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="sticky top-8 space-y-8">
