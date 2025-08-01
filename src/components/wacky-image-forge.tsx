@@ -85,7 +85,7 @@ export default function WackyImageForge() {
         'in a neon-lit city': '🏙️',
         'inside a volcano': '🌋',
         'at a disco': '🕺',
-        'in a library of lost books': '📚',
+        'in a library': '📚',
         'on a pirate ship': '🏴‍☠️',
       }
     },
@@ -454,5 +454,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
