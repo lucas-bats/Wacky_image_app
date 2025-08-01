@@ -28,6 +28,8 @@ interface GalleryImage {
   createdAt: string;
 }
 
+const MAX_GALLERY_IMAGES = 12;
+
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
   const [selectedKeywords, setSelectedKeywords] = useState<Map<CategoryName, string>>(new Map());
@@ -224,9 +226,24 @@ export default function WackyImageForge() {
                 prompt: finalizedPrompt,
                 createdAt: new Date().toISOString(),
             };
-            const updatedGallery = [newImage, ...galleryImages];
+            
+            // Limit gallery size to prevent quota errors
+            const updatedGallery = [newImage, ...galleryImages].slice(0, MAX_GALLERY_IMAGES);
+            
             setGalleryImages(updatedGallery);
-            localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
+            try {
+                localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
+            } catch (e) {
+                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                    toast({
+                        title: T.toast.storageFull.title,
+                        description: T.toast.storageFull.description,
+                        variant: "destructive",
+                    });
+                } else {
+                    console.error("Could not save to localStorage", e);
+                }
+            }
         }
       }
     });

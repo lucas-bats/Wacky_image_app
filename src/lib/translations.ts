@@ -56,6 +56,10 @@ export const translations = {
       },
       deleteFailed: {
         title: "Delete Failed",
+      },
+      storageFull: {
+        title: "Gallery Full",
+        description: "The oldest image was removed to make space.",
       }
     },
     categoryNames: {
@@ -200,6 +204,10 @@ export const translations = {
       },
       deleteFailed: {
         title: "Falha ao Apagar",
+      },
+      storageFull: {
+        title: "Galeria Cheia",
+        description: "A imagem mais antiga foi removida para liberar espaço.",
       }
     },
     categoryNames: {
@@ -260,7 +268,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'photorealistic': 'fotorrealista',
+          'fotorrealista': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
