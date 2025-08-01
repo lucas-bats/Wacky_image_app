@@ -2,11 +2,12 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   "projectId": "wacky-image-forge",
   "appId": "1:745776409867:web:a353893980835d8aa6860e",
-  "storageBucket": "wacky-image-forge.firebasestorage.app",
+  "storageBucket": "wacky-image-forge.appspot.com",
   "apiKey": "AIzaSyCR7ekEv54OTv0kx3Jci_zucjkQrG0Q6Yk",
   "authDomain": "wacky-image-forge.firebaseapp.com",
   "measurementId": "",
@@ -16,5 +17,6 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const firestore = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-export { app, firestore, auth };
+export { app, firestore, auth, storage };

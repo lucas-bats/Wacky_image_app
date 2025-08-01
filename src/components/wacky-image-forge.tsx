@@ -9,7 +9,6 @@ import {
   generateImageAction, 
   generateChaosPromptAction, 
   getGalleryAction,
-  saveImageToGalleryAction,
   deleteImageAction,
   GalleryImage
 } from '@/app/actions';
@@ -57,12 +56,12 @@ export default function WackyImageForge() {
           }
         })
         .finally(() => setIsGalleryLoading(false));
-    } else if (!loading) {
-      // If no user, clear gallery
+    } else if (!user && !loading) {
+      // If no user and not loading, clear gallery
       setGalleryImages([]);
       setIsGalleryLoading(false);
     }
-  }, [user, loading, T.toast.galleryLoadFailed, toast]);
+  }, [user, loading, T.toast.galleryLoadFailed.title, toast]);
 
 
   useEffect(() => {
@@ -207,7 +206,10 @@ export default function WackyImageForge() {
   };
 
   const handleGenerate = () => {
-    if (!user) return;
+    if (!user) {
+        toast({ title: "Authentication Error", description: "You must be logged in to generate images.", variant: "destructive" });
+        return;
+    }
     if (selectedKeywords.size === 0) {
       toast({
         title: T.toast.noKeywords.title,
@@ -224,19 +226,15 @@ export default function WackyImageForge() {
       setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish();
       
-      const { imageUrl, error } = await generateImageAction(englishKeywords, finalizedPrompt);
+      const { imageUrl, error } = await generateImageAction(user.uid, englishKeywords, finalizedPrompt);
+      
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else if (imageUrl) {
         setGeneratedImage(imageUrl);
-        const { success, error: saveError } = await saveImageToGalleryAction(user.uid, { imageUrl, prompt: finalizedPrompt });
-        if (saveError) {
-          toast({ title: T.toast.gallerySaveFailed.title, description: saveError, variant: "destructive" });
-        } else {
-          // Refetch gallery to show the new image
-          const { images } = await getGalleryAction(user.uid);
-          setGalleryImages(images);
-        }
+        // Refetch gallery to show the new image immediately
+        const { images } = await getGalleryAction(user.uid);
+        setGalleryImages(images);
       }
     });
   };
@@ -289,6 +287,7 @@ export default function WackyImageForge() {
   const handleDownload = async () => {
     if (!generatedImage) return;
     try {
+      // Use a cors proxy if direct fetch fails due to CORS policy on Firebase Storage
       const response = await fetch(generatedImage);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -328,16 +327,16 @@ export default function WackyImageForge() {
     }
   };
   
-  const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
+  const handleDeleteFromGallery = (image: GalleryImage, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) return;
 
     startTransition(async () => {
         const originalImages = galleryImages;
         // Optimistic update
-        setGalleryImages(originalImages.filter((img) => img.id !== id));
+        setGalleryImages(originalImages.filter((img) => img.id !== image.id));
 
-        const { success, error } = await deleteImageAction(user.uid, id);
+        const { success, error } = await deleteImageAction(user.uid, image);
 
         if (!success) {
             // Revert on failure
@@ -551,7 +550,7 @@ export default function WackyImageForge() {
                             variant="destructive"
                             size="icon"
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8"
-                            onClick={(e) => handleDeleteFromGallery(item.id, e)}
+                            onClick={(e) => handleDeleteFromGallery(item, e)}
                             >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">{T.gallery.deleteButton}</span>
