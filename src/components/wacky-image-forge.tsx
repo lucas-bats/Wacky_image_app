@@ -44,24 +44,37 @@ export default function WackyImageForge() {
   const { user, logout } = useAuth();
 
   const T = translations[language];
-  
-  useEffect(() => {
-    try {
-        const savedImages = localStorage.getItem('wackyGallery');
-        if (savedImages) {
-            setGalleryImages(JSON.parse(savedImages));
-        }
-    } catch (error) {
-        console.error("Could not load images from localStorage", error);
-    }
-  }, []);
 
+  // Derive storage key from user ID. This is crucial.
+  const storageKey = useMemo(() => user ? `wackyGallery_${user.uid}` : null, [user]);
+  
+  // Load gallery from localStorage only when the storageKey is available
+  useEffect(() => {
+    if (storageKey) {
+        try {
+            const savedImages = localStorage.getItem(storageKey);
+            if (savedImages) {
+                setGalleryImages(JSON.parse(savedImages));
+            } else {
+                setGalleryImages([]); // Clear gallery if no user-specific data is found
+            }
+        } catch (error) {
+            console.error("Could not load images from localStorage", error);
+            setGalleryImages([]);
+        }
+    } else {
+        // If there's no user, the gallery should be empty.
+        setGalleryImages([]);
+    }
+  }, [storageKey]);
+
+  // Effect to scroll to the image area after generation
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
       imageAreaRef.current.scrollIntoView({ behavior: 'smooth' });
       setShouldScroll(false);
     }
-  }, [isPending, shouldScroll]);
+  }, [generatedImage, shouldScroll]);
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -219,7 +232,7 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        if (imageUrl) {
+        if (imageUrl && storageKey) {
             const newImage: GalleryImage = {
                 id: new Date().toISOString(),
                 imageUrl,
@@ -227,23 +240,23 @@ export default function WackyImageForge() {
                 createdAt: new Date().toISOString(),
             };
             
-            // Limit gallery size to prevent quota errors
-            const updatedGallery = [newImage, ...galleryImages].slice(0, MAX_GALLERY_IMAGES);
-            
-            setGalleryImages(updatedGallery);
-            try {
-                localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
-            } catch (e) {
-                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                    toast({
-                        title: T.toast.storageFull.title,
-                        description: T.toast.storageFull.description,
-                        variant: "destructive",
-                    });
-                } else {
-                    console.error("Could not save to localStorage", e);
+            setGalleryImages(prevImages => {
+                const updatedGallery = [newImage, ...prevImages].slice(0, MAX_GALLERY_IMAGES);
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
+                } catch (e) {
+                    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                        toast({
+                            title: T.toast.storageFull.title,
+                            description: T.toast.storageFull.description,
+                            variant: "destructive",
+                        });
+                    } else {
+                        console.error("Could not save to localStorage", e);
+                    }
                 }
-            }
+                return updatedGallery;
+            });
         }
       }
     });
@@ -338,9 +351,10 @@ export default function WackyImageForge() {
   
   const handleDeleteFromGallery = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
+    if (!storageKey) return;
     const updatedGallery = galleryImages.filter((img) => img.id !== id);
     setGalleryImages(updatedGallery);
-    localStorage.setItem('wackyGallery', JSON.stringify(updatedGallery));
+    localStorage.setItem(storageKey, JSON.stringify(updatedGallery));
     toast({
         title: T.toast.deleteSuccess.title,
     });
