@@ -41,12 +41,14 @@ export default function WackyImageForge() {
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const { user, loading, logout } = useAuth();
 
   const T = translations[language];
 
   const storageKey = useMemo(() => user ? `wackyGallery_${user.uid}` : null, [user]);
 
+  // Effect to load from localStorage on mount
   useEffect(() => {
     if (loading) return; 
 
@@ -61,14 +63,18 @@ export default function WackyImageForge() {
         } catch (error) {
             console.error("Could not load images from localStorage", error);
             setGalleryImages([]);
+        } finally {
+            setHasLoadedFromStorage(true);
         }
     } else {
         setGalleryImages([]);
     }
   }, [storageKey, loading]);
   
-  // Effect to save to localStorage whenever galleryImages changes
+  // Effect to save to localStorage whenever galleryImages changes, after initial load
   useEffect(() => {
+    if (!hasLoadedFromStorage) return;
+
     if (storageKey) {
       try {
         const updatedGallery = galleryImages.slice(0, MAX_GALLERY_IMAGES);
@@ -85,7 +91,7 @@ export default function WackyImageForge() {
         }
       }
     }
-  }, [galleryImages, storageKey, toast, T.toast.storageFull]);
+  }, [galleryImages, storageKey, hasLoadedFromStorage, toast, T.toast.storageFull]);
 
 
   useEffect(() => {
@@ -583,5 +589,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
