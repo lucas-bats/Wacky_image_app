@@ -45,64 +45,64 @@ export default function WackyImageForge() {
       color: 'bg-[#70C46B]',
       textColor: 'text-white',
       keywords: {
-        [T.keywordCategories.Animals.keywords['T-rex']]: '🦖',
-        [T.keywordCategories.Animals.keywords['Penguin']]: '🐧',
-        [T.keywordCategories.Animals.keywords['Kitten']]: '🐱',
-        [T.keywordCategories.Animals.keywords['Puppy']]: '🐶',
-        [T.keywordCategories.Animals.keywords['Elephant']]: '🐘',
-        [T.keywordCategories.Animals.keywords['Lion']]: '🦁',
-        [T.keywordCategories.Animals.keywords['Unicorn']]: '🦄',
-        [T.keywordCategories.Animals.keywords['Dragon']]: '🐉',
-        [T.keywordCategories.Animals.keywords['Llama']]: '🦙',
-        [T.keywordCategories.Animals.keywords['Robot']]: '🤖',
+        'T-rex': '🦖',
+        'Penguin': '🐧',
+        'Kitten': '🐱',
+        'Puppy': '🐶',
+        'Elephant': '🐘',
+        'Lion': '🦁',
+        'Unicorn': '🦄',
+        'Dragon': '🐉',
+        'Llama': '🦙',
+        'Robot': '🤖',
       }
     },
     [T.categoryNames.Actions]: {
       color: 'bg-[#F5A623]',
       textColor: 'text-white',
       keywords: {
-        [T.keywordCategories.Actions.keywords['eating spaghetti']]: '🍝',
-        [T.keywordCategories.Actions.keywords['skateboarding']]: '🛹',
-        [T.keywordCategories.Actions.keywords['dancing']]: '💃',
-        [T.keywordCategories.Actions.keywords['flying']]: '🕊️',
-        [T.keywordCategories.Actions.keywords['reading a book']]: '📖',
-        [T.keywordCategories.Actions.keywords['painting']]: '🎨',
-        [T.keywordCategories.Actions.keywords['coding']]: '💻',
-        [T.keywordCategories.Actions.keywords['juggling planets']]: '🪐',
-        [T.keywordCategories.Actions.keywords['riding a monocycle']]: '🚲',
-        [T.keywordCategories.Actions.keywords['breathing fire']]: '🔥',
+        'eating spaghetti': '🍝',
+        'skateboarding': '🛹',
+        'dancing': '💃',
+        'flying': '🕊️',
+        'reading a book': '📖',
+        'painting': '🎨',
+        'coding': '💻',
+        'juggling planets': '🪐',
+        'riding a monocycle': '🚲',
+        'breathing fire': '🔥',
       }
     },
     [T.categoryNames.Settings]: {
       color: 'bg-[#50E3C2]',
       textColor: 'text-white',
       keywords: {
-        [T.keywordCategories.Settings.keywords['on Saturn']]: '🪐',
-        [T.keywordCategories.Settings.keywords['in a jungle']]: '🌴',
-        [T.keywordCategories.Settings.keywords['underwater']]: '🌊',
-        [T.keywordCategories.Settings.keywords['in a castle']]: '🏰',
-        [T.keywordCategories.Settings.keywords['on a mountain top']]: '⛰️',
-        [T.keywordCategories.Settings.keywords['in a neon-lit city']]: '🏙️',
-        [T.keywordCategories.Settings.keywords['inside a volcano']]: '🌋',
-        [T.keywordCategories.Settings.keywords['at a disco']]: '🕺',
-        [T.keywordCategories.Settings.keywords['in a library of lost books']]: '📚',
-        [T.keywordCategories.Settings.keywords['on a pirate ship']]: '🏴‍☠️',
+        'on Saturn': '🪐',
+        'in a jungle': '🌴',
+        'underwater': '🌊',
+        'in a castle': '🏰',
+        'on a mountain top': '⛰️',
+        'in a neon-lit city': '🏙️',
+        'inside a volcano': '🌋',
+        'at a disco': '🕺',
+        'in a library of lost books': '📚',
+        'on a pirate ship': '🏴‍☠️',
       }
     },
     [T.categoryNames.Styles]: {
       color: 'bg-[#4A90E2]',
       textColor: 'text-white',
       keywords: {
-        [T.keywordCategories.Styles.keywords['pixel art']]: '👾',
-        [T.keywordCategories.Styles.keywords['3D render']]: '🧊',
-        [T.keywordCategories.Styles.keywords['cartoon']]: '😜',
-        [T.keywordCategories.Styles.keywords['photorealistic']]: '📷',
-        [T.keywordCategories.Styles.keywords['oil painting']]: '🖼️',
-        [T.keywordCategories.Styles.keywords['watercolor']]: '💧',
-        [T.keywordCategories.Styles.keywords['cyberpunk']]: '🤖',
-        [T.keywordCategories.Styles.keywords['steampunk']]: '⚙️',
-        [T.keywordCategories.Styles.keywords['art deco']]: '🎭',
-        [T.keywordCategories.Styles.keywords['vaporwave']]: '👓',
+        'pixel art': '👾',
+        '3D render': '🧊',
+        'cartoon': '😜',
+        'photorealistic': '📷',
+        'oil painting': '🖼️',
+        'watercolor': '💧',
+        'cyberpunk': '🤖',
+        'steampunk': '⚙️',
+        'art deco': '🎭',
+        'vaporwave': '👓',
       }
     },
   };
@@ -111,31 +111,57 @@ export default function WackyImageForge() {
 
   const promptText = useMemo(() => {
     const orderedKeywords: string[] = [];
+    
+    // Map translated keywords to their English equivalents for prompt generation.
+    const langTranslations = translations[language];
+    const enTranslations = translations.en;
+    
+    const mapToEnglish = (category: CategoryName, translatedKeyword: string): string | undefined => {
+        const categoryKey = Object.keys(langTranslations.categoryNames).find(k => langTranslations.categoryNames[k as Category] === category) as Category | undefined;
+        if (!categoryKey) return undefined;
+        
+        const keywordKey = Object.keys(langTranslations.keywordCategories[categoryKey].keywords).find(k => langTranslations.keywordCategories[categoryKey].keywords[k as keyof typeof langTranslations.keywordCategories[Category]['keywords']] === translatedKeyword);
+        if (!keywordKey) return undefined;
+
+        return enTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof enTranslations.keywordCategories[Category]['keywords']];
+    };
+    
     categoryOrder.forEach(category => {
-      if (selectedKeywords.has(category)) {
-        orderedKeywords.push(selectedKeywords.get(category)!);
+      const selectedKeyword = selectedKeywords.get(category);
+      if (selectedKeyword) {
+          orderedKeywords.push(selectedKeyword);
       }
     });
+
+    if (orderedKeywords.length === 0) return '';
     
-    // Filter out style from the main prompt parts
-    const mainKeywords = orderedKeywords.filter(kw => selectedKeywords.get(T.categoryNames.Styles) !== kw);
     const style = selectedKeywords.get(T.categoryNames.Styles);
-
-    if (mainKeywords.length === 0) return '';
-
+    
+    // Create the display prompt in the selected language.
+    const displayKeywords = orderedKeywords.filter(kw => kw !== style);
     if (language === 'pt') {
-      const promptParts = mainKeywords.join(', ');
+      const promptParts = displayKeywords.join(', ');
       return style ? `Um(a) ${promptParts}, no estilo ${style}` : `Um(a) ${promptParts}`;
     }
     
     // English
-    const promptParts = mainKeywords.join(', ');
+    const promptParts = displayKeywords.join(', ');
     return style ? `A ${promptParts}, in ${style} style` : `A ${promptParts}`;
 
   }, [selectedKeywords, categoryOrder, language, T]);
 
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
+    
+    // Find the English version of the keyword to get its emoji
+    const langT = translations[language];
+    const enT = translations.en;
+    
+    const categoryKey = Object.keys(langT.categoryNames).find(k => langT.categoryNames[k as Category] === category) as Category;
+    const keywordKey = Object.keys(langT.keywordCategories[categoryKey].keywords).find(k => langT.keywordCategories[categoryKey].keywords[k as keyof typeof langT.keywordCategories[Category]['keywords']] === keyword);
+    
+    const emoji = keywordKey ? keywordCategories[category].keywords[keywordKey] : '';
+
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
     } else {
@@ -284,33 +310,40 @@ export default function WackyImageForge() {
     });
     setSelectedKeywords(newSelectedKeywords);
   };
+
+  const renderKeywordButtons = (category: CategoryName) => {
+    // Map from translated keyword to English keyword key
+    const translatedKeywords = T.keywordCategories[Object.keys(T.categoryNames).find(key => T.categoryNames[key as Category] === category) as Category].keywords;
+
+    return Object.entries(translatedKeywords).map(([key, keyword]) => {
+      const isSelected = selectedKeywords.get(category) === keyword;
+      const emoji = keywordCategories[category].keywords[key];
+      return (
+        <Button
+          key={keyword}
+          onClick={() => handleKeywordClick(category, keyword)}
+          className={cn(
+            'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
+            isSelected
+              ? `${keywordCategories[category].color} ${keywordCategories[category].textColor} border-yellow-300`
+              : `bg-card text-card-foreground hover:bg-muted border-border`
+          )}
+        >
+          <span className="w-8 h-8 mr-3 flex items-center justify-center text-3xl">{emoji}</span>
+          <span className="font-body">{keyword}</span>
+        </Button>
+      );
+    });
+  };
   
   const renderKeywordSelector = (category: CategoryName) => (
       <div key={category}>
         <h2 className="text-3xl font-bold tracking-wider mb-4 md:hidden" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {Object.entries(keywordCategories[category].keywords).map(([keyword, icon]) => {
-            const isSelected = selectedKeywords.get(category) === keyword;
-            return (
-              <Button
-                key={keyword}
-                onClick={() => handleKeywordClick(category, keyword)}
-                className={cn(
-                  'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',
-                  isSelected
-                    ? `${keywordCategories[category].color} ${keywordCategories[category].textColor} border-yellow-300`
-                    : `bg-card text-card-foreground hover:bg-muted border-border`
-                )}
-              >
-                <span className="w-8 h-8 mr-3 flex items-center justify-center text-3xl">{icon}</span>
-                <span className="font-body">{keyword}</span>
-              </Button>
-            );
-          })}
+          {renderKeywordButtons(category)}
         </div>
       </div>
   );
-
 
   return (
     <div className="container mx-auto p-4 md:p-8 font-headline">
@@ -337,6 +370,10 @@ export default function WackyImageForge() {
                 <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
               </Button>
             </div>
+          
+            <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
+                <p className="font-body text-lg text-foreground">{T.instruction}</p>
+            </div>
 
           {isMobile ? (
               <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
@@ -356,7 +393,9 @@ export default function WackyImageForge() {
               {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
                 <div key={category}>
                   <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
-                   {renderKeywordSelector(category)}
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {renderKeywordButtons(category)}
+                    </div>
                 </div>
               ))}
             </div>
@@ -415,3 +454,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    

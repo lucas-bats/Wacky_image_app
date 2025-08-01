@@ -4,6 +4,7 @@ export const translations = {
     subtitle: 'Craft chaotic creations with a click!',
     promptPlaceholder: 'Select keywords to begin...',
     languageButton: 'Change language',
+    instruction: 'Choose one item from each category to assemble your prompt!',
     buttons: {
       generate: 'Generate Image',
       generating: 'Generating...',
@@ -113,6 +114,7 @@ export const translations = {
     subtitle: 'Dê vida a imagens caóticas com um clique!',
     promptPlaceholder: 'Selecione as palavras-chave para começar...',
     languageButton: 'Mudar idioma',
+    instruction: 'Escolha um item de cada categoria para montar seu prompt!',
     buttons: {
       generate: 'Gerar Imagem',
       generating: 'Gerando...',
@@ -206,7 +208,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'photorealistic': 'fotorrealista',
+          'fotorrealista': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
@@ -218,3 +220,5 @@ export const translations = {
     }
   },
 };
+
+    
