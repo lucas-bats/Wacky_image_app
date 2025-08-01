@@ -24,6 +24,11 @@ export const translations = {
       title: 'Your creation will appear here',
       subtitle: 'Let your imagination run wild!',
     },
+    gallery: {
+      title: 'Community Gallery',
+      empty: 'No images yet. Be the first to create one!',
+      modalTitle: 'Creation Details',
+    },
     toast: {
       noKeywords: {
         title: "No keywords!",
@@ -43,6 +48,10 @@ export const translations = {
       shareFailed: {
         title: "Share Failed",
         description: "Could not share the image.",
+      },
+      galleryFailed: {
+        title: "Gallery Failed",
+        description: "Could not load the community gallery.",
       }
     },
     categoryNames: {
@@ -139,6 +148,11 @@ export const translations = {
       title: 'Sua criação aparecerá aqui',
       subtitle: 'Deixe sua imaginação voar!',
     },
+    gallery: {
+      title: 'Galeria da Comunidade',
+      empty: 'Nenhuma imagem ainda. Seja o primeiro a criar uma!',
+      modalTitle: 'Detalhes da Criação',
+    },
     toast: {
       noKeywords: {
         title: "Nenhuma palavra-chave!",
@@ -158,6 +172,10 @@ export const translations = {
       shareFailed: {
         title: "Falha ao Compartilhar",
         description: "Não foi possível compartilhar a imagem.",
+      },
+      galleryFailed: {
+        title: "Falha na Galeria",
+        description: "Não foi possível carregar a galeria da comunidade.",
       }
     },
     categoryNames: {
@@ -194,7 +212,7 @@ export const translations = {
           'coding': 'programando',
           'juggling planets': 'malabarando planetas',
           'riding a monocycle': 'andando de monociclo',
-          'breathing fire': 'soltando fogo pela boca',
+          'soltando fogo pela boca': 'soltando fogo pela boca',
         },
       },
       Settings: {

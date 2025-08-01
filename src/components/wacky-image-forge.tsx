@@ -5,13 +5,14 @@ import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from '
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { generateImageAction, generateChaosPromptAction } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2 } from 'lucide-react';
+import { generateImageAction, generateChaosPromptAction, getGalleryImages, GalleryImage } from '@/app/actions';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 
 type Language = 'en' | 'pt';
@@ -29,8 +30,26 @@ export default function WackyImageForge() {
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 
   const T = translations[language];
+  
+  useEffect(() => {
+    startTransition(async () => {
+      const { images, error } = await getGalleryImages();
+      if (error) {
+        console.error(error);
+        toast({
+          title: T.toast.galleryFailed.title,
+          description: error,
+          variant: "destructive",
+          duration: 10000,
+        });
+      } else if (images) {
+        setGalleryImages(images);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -209,7 +228,8 @@ export default function WackyImageForge() {
     setShouldScroll(true);
     startTransition(async () => {
       setGeneratedImage(null);
-      setCurrentPrompt(promptText);
+      const finalizedPrompt = promptText;
+      setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
       
       const { imageUrl, error } = await generateImageAction(englishKeywords);
@@ -217,6 +237,16 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
+        // Add to gallery locally for instant update
+        if (imageUrl) {
+          const newGalleryItem: GalleryImage = {
+            id: new Date().toISOString(), // Temporary ID
+            imageUrl: imageUrl,
+            prompt: finalizedPrompt,
+            createdAt: new Date(),
+          };
+          setGalleryImages(prev => [newGalleryItem, ...prev]);
+        }
       }
     });
   };
@@ -339,7 +369,9 @@ export default function WackyImageForge() {
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
-      const emoji = keywordCategories[category].keywords[key];
+      const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
+      const emoji = keywordCategories[T.categoryNames[categoryKey]].keywords[key];
+
       return (
         <Button
           key={keyword}
@@ -480,6 +512,33 @@ export default function WackyImageForge() {
            </div>
         </div>
       </main>
+
+      <section className="mt-16">
+        <h2 className="text-5xl font-black text-center text-foreground tracking-tighter mb-8">{T.gallery.title}</h2>
+        {galleryImages.length === 0 && !isPending && (
+            <div className="text-center text-muted-foreground font-body text-lg">{T.gallery.empty}</div>
+        )}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {galleryImages.map((item) => (
+             <Dialog key={item.id}>
+                <DialogTrigger asChild>
+                    <Card className="overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow cursor-pointer group">
+                        <Image src={item.imageUrl} alt={item.prompt} width={512} height={512} className="w-full h-auto aspect-square object-cover bg-muted group-hover:scale-105 transition-transform duration-300" data-ai-hint="gallery image" />
+                    </Card>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle className='text-2xl'>{T.gallery.modalTitle}</DialogTitle>
+                    <DialogDescription className='font-body text-base'>{item.prompt}</DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4">
+                    <Image src={item.imageUrl} alt={item.prompt} width={1024} height={1024} className="w-full h-auto rounded-lg bg-muted" data-ai-hint="gallery image large" />
+                  </div>
+                </DialogContent>
+              </Dialog>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
