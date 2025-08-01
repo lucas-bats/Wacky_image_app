@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -74,8 +75,21 @@ function getRandomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-async function generateRandomPrompt(): Promise<ChaosPromptOutput> {
-  return chaosPromptFlow();
+export async function generateRandomPrompt(): Promise<ChaosPromptOutput> {
+  const animal = getRandomElement(animals);
+  const action = getRandomElement(actions);
+  const setting = getRandomElement(settings);
+  const style = getRandomElement(styles);
+
+  const prompt = `A ${animal} ${action} ${setting}, in ${style} style.`;
+
+  return {
+    prompt: prompt,
+    animal,
+    action,
+    setting,
+    style,
+  };
 }
 
 const chaosPromptFlow = ai.defineFlow(
@@ -84,21 +98,6 @@ const chaosPromptFlow = ai.defineFlow(
     outputSchema: ChaosPromptOutputSchema,
   },
   async () => {
-    const animal = getRandomElement(animals);
-    const action = getRandomElement(actions);
-    const setting = getRandomElement(settings);
-    const style = getRandomElement(styles);
-
-    const prompt = `A ${animal} ${action} ${setting}, in ${style} style.`;
-
-    return {
-      prompt: prompt,
-      animal,
-      action,
-      setting,
-      style,
-    };
+    return generateRandomPrompt();
   }
 );
-
-export {generateRandomPrompt};

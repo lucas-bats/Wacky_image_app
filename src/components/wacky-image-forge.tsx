@@ -38,25 +38,25 @@ export default function WackyImageForge() {
   const T = translations[language];
   
   useEffect(() => {
-    const fetchGallery = async () => {
-        setIsGalleryLoading(true);
-        const { images, error } = await getPublicGalleryAction();
-        if (error || !images) {
-            console.error(error);
-            toast({
-                title: T.toast.galleryFailed.title,
-                description: T.toast.galleryFailed.description,
-                variant: "destructive",
-            });
-        } else {
-             // Sort by date, newest first
-            images.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-            setGalleryImages(images);
+    if (user) {
+        const fetchGallery = async () => {
+            setIsGalleryLoading(true);
+            const { images, error } = await getPublicGalleryAction();
+            if (error || !images) {
+                console.error(error);
+                toast({
+                    title: T.toast.galleryFailed.title,
+                    description: T.toast.galleryFailed.description,
+                    variant: "destructive",
+                });
+            } else {
+                setGalleryImages(images);
+            }
+            setIsGalleryLoading(false);
         }
-        setIsGalleryLoading(false);
+        fetchGallery();
     }
-    fetchGallery();
-  }, [T.toast.galleryFailed.title, T.toast.galleryFailed.description, toast]);
+  }, [user, T.toast.galleryFailed.title, T.toast.galleryFailed.description, toast]);
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -138,20 +138,6 @@ export default function WackyImageForge() {
   const promptText = useMemo(() => {
     const orderedKeywords: string[] = [];
     
-    // Map translated keywords to their English equivalents for prompt generation.
-    const langTranslations = translations[language];
-    const enTranslations = translations.en;
-    
-    const mapToEnglish = (category: CategoryName, translatedKeyword: string): string | undefined => {
-        const categoryKey = Object.keys(langTranslations.categoryNames).find(k => langTranslations.categoryNames[k as Category] === category) as Category | undefined;
-        if (!categoryKey) return undefined;
-        
-        const keywordKey = Object.keys(langTranslations.keywordCategories[categoryKey].keywords).find(k => langTranslations.keywordCategories[categoryKey].keywords[k as keyof typeof langTranslations.keywordCategories[Category]['keywords']] === translatedKeyword);
-        if (!keywordKey) return undefined;
-
-        return enTranslations.keywordCategories[categoryKey].keywords[keywordKey as keyof typeof enTranslations.keywordCategories[Category]['keywords']];
-    };
-    
     categoryOrder.forEach(category => {
       const selectedKeyword = selectedKeywords.get(category);
       if (selectedKeyword) {
@@ -163,14 +149,12 @@ export default function WackyImageForge() {
     
     const style = selectedKeywords.get(T.categoryNames.Styles);
     
-    // Create the display prompt in the selected language.
     const displayKeywords = orderedKeywords.filter(kw => kw !== style);
     if (language === 'pt') {
       const promptParts = displayKeywords.join(', ');
       return style ? `Um(a) ${promptParts}, no estilo ${style}` : `Um(a) ${promptParts}`;
     }
     
-    // English
     const promptParts = displayKeywords.join(', ');
     return style ? `A ${promptParts}, in ${style} style` : `A ${promptParts}`;
 
@@ -187,16 +171,16 @@ export default function WackyImageForge() {
     setSelectedKeywords(newMap);
   };
 
-  const mapKeywordsToEnglish = (keywords: Map<CategoryName, string>): string[] => {
+  const mapKeywordsToEnglish = (): string[] => {
     const englishKeywords: string[] = [];
     if (language === 'en') {
-        return Array.from(keywords.values());
+        return Array.from(selectedKeywords.values());
     }
 
     const langTranslations = translations[language];
     const enTranslations = translations.en;
 
-    keywords.forEach((value, key) => {
+    selectedKeywords.forEach((value, key) => {
         const categoryKey = Object.keys(langTranslations.categoryNames).find(
             (k) => langTranslations.categoryNames[k as Category] === key
         ) as Category | undefined;
@@ -230,17 +214,16 @@ export default function WackyImageForge() {
       setGeneratedImage(null);
       const finalizedPrompt = promptText;
       setCurrentPrompt(finalizedPrompt);
-      const englishKeywords = mapKeywordsToEnglish(selectedKeywords);
+      const englishKeywords = mapKeywordsToEnglish();
       
-      const { imageUrl, error } = await generateImageAction(englishKeywords, finalizedPrompt, user?.uid || null);
+      const { imageUrl, error, imageId } = await generateImageAction(englishKeywords, finalizedPrompt, user?.uid || null);
       if (error) {
         toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
       } else {
         setGeneratedImage(imageUrl);
-        if (imageUrl && user) {
-            // Add to local state immediately for instant feedback
+        if (imageUrl && user && imageId) {
             const newImage: GalleryImage = {
-                id: new Date().toISOString(), // Temporary ID
+                id: imageId,
                 imageUrl,
                 prompt: finalizedPrompt,
                 createdAt: new Date().toISOString(),
@@ -331,7 +314,6 @@ export default function WackyImageForge() {
                 files: [file],
             });
         } else {
-            // Fallback for browsers that don't support Web Share API
             handleDownload();
         }
     } catch (error) {
@@ -341,14 +323,17 @@ export default function WackyImageForge() {
   };
 
   const handleDeleteFromGallery = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the dialog from opening
+    e.stopPropagation(); 
+    const originalImages = [...galleryImages];
+    setGalleryImages(prev => prev.filter(img => img.id !== id));
+    
     const { success, error } = await deleteImageAction(id, user?.uid || null);
     if(success) {
-      setGalleryImages(prev => prev.filter(img => img.id !== id));
       toast({
         title: T.toast.deleteSuccess.title,
       });
     } else {
+      setGalleryImages(originalImages);
       toast({ title: T.toast.deleteFailed.title, description: error, variant: "destructive" });
     }
   };
@@ -384,6 +369,7 @@ export default function WackyImageForge() {
   const renderKeywordButtons = (category: CategoryName) => {
     const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
     const translatedKeywords = T.keywordCategories[categoryKey].keywords;
+    const enKeywords = translations.en.keywordCategories[categoryKey].keywords;
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
@@ -392,7 +378,7 @@ export default function WackyImageForge() {
       
       return (
         <Button
-          key={keyword}
+          key={keyword as string}
           onClick={() => handleKeywordClick(category, keyword as string)}
           className={cn(
             'h-16 text-lg rounded-xl border-4 justify-start p-4 transition-all duration-200 ease-in-out transform hover:-translate-y-1',

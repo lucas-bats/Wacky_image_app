@@ -4,14 +4,14 @@
 import { generateImage } from '@/ai/flows/generate-image';
 import { ChaosPromptOutput, generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
 import { firestore } from '@/lib/firebase';
-import { collection, addDoc, getDocs, doc, deleteDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, deleteDoc, getDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 
 export interface GalleryImage {
   id: string;
   imageUrl: string;
   prompt: string;
-  createdAt: string; // Keep as ISO string for client
+  createdAt: string; 
   userId: string;
 }
 
@@ -26,23 +26,24 @@ async function saveImageToFirestore(prompt: string, imageUrl: string, userId: st
 }
 
 
-export async function generateImageAction(keywords: string[], prompt: string, userId: string | null): Promise<{ imageUrl: string | null; error: string | null; prompt: string }> {
+export async function generateImageAction(keywords: string[], prompt: string, userId: string | null): Promise<{ imageUrl: string | null; error: string | null; prompt: string, imageId: string | null }> {
   try {
     if (!keywords || keywords.length === 0) {
-      return { imageUrl: null, error: 'Please select at least one keyword.', prompt };
+      return { imageUrl: null, error: 'Please select at least one keyword.', prompt, imageId: null };
     }
     if (!userId) {
-        return { imageUrl: null, error: 'User must be logged in to generate images.', prompt };
+        return { imageUrl: null, error: 'User must be logged in to generate images.', prompt, imageId: null };
     }
 
     const result = await generateImage({ keywords });
+    let imageId = null;
     if (result.image) {
-      await saveImageToFirestore(prompt, result.image, userId);
+      imageId = await saveImageToFirestore(prompt, result.image, userId);
     }
-    return { imageUrl: result.image, error: null, prompt };
+    return { imageUrl: result.image, error: null, prompt, imageId };
   } catch (e) {
     console.error(e);
-    return { imageUrl: null, error: 'Failed to generate image. The AI might be having a moment. Please try again.', prompt };
+    return { imageUrl: null, error: 'Failed to generate image. The AI might be having a moment. Please try again.', prompt, imageId: null };
   }
 }
 
@@ -61,14 +62,14 @@ export async function generateChaosPromptAction(): Promise<{ result: ChaosPrompt
 
 export async function getPublicGalleryAction(): Promise<{ images: GalleryImage[] | null; error: string | null; }> {
     try {
-        const querySnapshot = await getDocs(collection(firestore, "gallery"));
+        const q = query(collection(firestore, "gallery"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
         const images = querySnapshot.docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id,
                 imageUrl: data.imageUrl,
                 prompt: data.prompt,
-                // Firestore timestamp needs to be converted for the client
                 createdAt: data.createdAt?.toDate?.().toISOString() || new Date().toISOString(),
                 userId: data.userId,
             };
