@@ -1,3 +1,4 @@
+
 export const translations = {
   en: {
     title: 'Wacky Image Forge',
@@ -212,7 +213,7 @@ export const translations = {
           'coding': 'programando',
           'juggling planets': 'malabarando planetas',
           'riding a monocycle': 'andando de monociclo',
-          'soltando fogo pela boca': 'soltando fogo pela boca',
+          'breathing fire': 'soltando fogo pela boca',
         },
       },
       Settings: {
