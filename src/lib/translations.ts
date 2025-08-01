@@ -248,7 +248,7 @@ export const translations = {
           'coding': 'programando',
           'juggling planets': 'malabarando planetas',
           'riding a monocycle': 'andando de monociclo',
-          'breathing fire': 'soltando fogo pela boca',
+          'soltando fogo pela boca': 'soltando fogo pela boca',
         },
       },
       Settings: {

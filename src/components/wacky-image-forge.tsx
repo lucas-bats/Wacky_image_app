@@ -233,8 +233,7 @@ export default function WackyImageForge() {
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
         // Refetch gallery to show the new image immediately
-        const { images } = await getGalleryAction(user.uid);
-        setGalleryImages(images);
+        getGalleryAction(user.uid).then(({ images }) => setGalleryImages(images));
       }
     });
   };

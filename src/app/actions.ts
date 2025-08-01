@@ -4,14 +4,14 @@
 import { generateImage } from '@/ai/flows/generate-image';
 import { ChaosPromptOutput, generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
 import { firestore, storage } from '@/lib/firebase';
-import { collection, doc, addDoc, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, getDocs, query, where, orderBy, deleteDoc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export interface GalleryImage {
-  id: string; // Document ID from Firestore
+  id: string; // Document ID from Firestore for the metadata
   imageUrl: string;
   prompt: string;
-  storagePath: string;
+  storagePath: string; // The path in Firebase Storage
   createdAt: string; 
 }
 
@@ -40,13 +40,13 @@ export async function generateImageAction(userId: string, keywords: string[], pr
     // 3. Get the public download URL for the uploaded image
     const downloadURL = await getDownloadURL(storageRef);
 
-    // 4. Save the image metadata to Firestore
+    // 4. Save the image metadata to Firestore in a new document
     const userImagesCollection = collection(firestore, 'userImages');
     await addDoc(userImagesCollection, {
       uid: userId,
       imageUrl: downloadURL,
       prompt: prompt,
-      storagePath: storagePath,
+      storagePath: storagePath, // Save the path for future deletion
       createdAt: new Date().toISOString(),
     });
     
@@ -94,10 +94,14 @@ export async function deleteImageAction(userId: string, image: GalleryImage): Pr
     }
     
     try {
-        // First, verify the user owns this document (extra security)
         const docRef = doc(firestore, 'userImages', image.id);
+        const docSnap = await getDoc(docRef);
 
-        // Delete from Firebase Storage
+        if (!docSnap.exists() || docSnap.data().uid !== userId) {
+            return { success: false, error: 'Permission denied or image not found.' };
+        }
+
+        // Delete from Firebase Storage first
         const storageRef = ref(storage, image.storagePath);
         await deleteObject(storageRef);
         
