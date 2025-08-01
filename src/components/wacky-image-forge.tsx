@@ -6,13 +6,14 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { generateImageAction, generateChaosPromptAction, GalleryImage } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2 } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from './auth-provider';
 
 
 type Language = 'en' | 'pt';
@@ -31,6 +32,7 @@ export default function WackyImageForge() {
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const { logout } = useAuth();
 
   const T = translations[language];
   
@@ -389,14 +391,12 @@ export default function WackyImageForge() {
   };
 
   const renderKeywordButtons = (category: CategoryName) => {
-    // Map from translated keyword to English keyword key
     const translatedKeywords = T.keywordCategories[Object.keys(T.categoryNames).find(key => T.categoryNames[key as Category] === category) as Category].keywords;
 
     return Object.entries(translatedKeywords).map(([key, keyword]) => {
       const isSelected = selectedKeywords.get(category) === keyword;
       const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
-      const categoryName = T.categoryNames[categoryKey] as CategoryName;
-      const emojiCategory = keywordCategories[categoryName];
+      const emojiCategory = keywordCategories[T.categoryNames[categoryKey] as CategoryName];
       const emoji = emojiCategory?.keywords[key];
       
       return (
@@ -441,10 +441,14 @@ export default function WackyImageForge() {
   return (
     <div className="container mx-auto p-4 md:p-8 font-headline">
       <header className="text-center my-8 md:my-12 relative">
-        <div className="absolute top-0 right-0">
+        <div className="absolute top-0 right-0 flex gap-2">
             <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
                 <Languages className="h-5 w-5" />
                 <span className="sr-only">{T.languageButton}</span>
+            </Button>
+            <Button onClick={logout} variant="destructive" size="icon" className='rounded-full'>
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only">{T.auth.logout}</span>
             </Button>
         </div>
         <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
