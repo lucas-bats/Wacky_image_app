@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { 
   generateImageAction
 } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, LogOut } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, LogOut, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -16,12 +16,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from './auth-provider';
 import { generateChaosPromptAction } from '@/app/actions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
 type Category = keyof KeywordCategories;
 type CategoryName = (typeof translations)[Language]['categoryNames'][Category];
+
+interface GalleryImage {
+  id: string;
+  src: string;
+  prompt: string;
+  createdAt: string;
+}
+
+const GALLERY_LIMIT = 12;
 
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
@@ -33,9 +43,40 @@ export default function WackyImageForge() {
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [storageKey, setStorageKey] = useState<string | null>(null);
 
   const T = translations[language];
+
+  useEffect(() => {
+    if (user) {
+      setStorageKey(`wackyGallery_${user.uid}`);
+    } else {
+      setStorageKey(null);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (loading) return; 
+
+    if (storageKey) {
+      try {
+        const storedGallery = localStorage.getItem(storageKey);
+        if (storedGallery) {
+          setGalleryImages(JSON.parse(storedGallery));
+        } else {
+          setGalleryImages([]);
+        }
+      } catch (error) {
+        console.error("Failed to load gallery from localStorage", error);
+        setGalleryImages([]);
+      }
+    } else {
+       setGalleryImages([]);
+    }
+  }, [storageKey, loading]);
+  
 
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current) {
@@ -178,6 +219,34 @@ export default function WackyImageForge() {
     return englishKeywords;
   };
 
+  const saveToGallery = (imageSrc: string, prompt: string) => {
+    if (!storageKey) return;
+
+    const newImage: GalleryImage = {
+      id: new Date().toISOString(),
+      src: imageSrc,
+      prompt: prompt,
+      createdAt: new Date().toISOString(),
+    };
+
+    setGalleryImages(prevImages => {
+      const updatedImages = [newImage, ...prevImages];
+      if (updatedImages.length > GALLERY_LIMIT) {
+        updatedImages.pop(); 
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(updatedImages));
+      } catch (e) {
+        toast({
+          title: "Gallery Full",
+          description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
+          variant: "destructive",
+        });
+      }
+      return updatedImages;
+    });
+  };
+
   const handleGenerate = () => {
     if (!user) {
         toast({ title: "Authentication Error", description: "You must be logged in to generate images.", variant: "destructive" });
@@ -205,6 +274,7 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
+        saveToGallery(result.imageUrl, finalizedPrompt);
       }
     });
   };
@@ -296,6 +366,20 @@ export default function WackyImageForge() {
     }
   };
 
+  const handleDeleteFromGallery = (id: string) => {
+    if (!storageKey) return;
+    setGalleryImages(prevImages => {
+      const updatedImages = prevImages.filter(img => img.id !== id);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(updatedImages));
+      } catch (error) {
+        toast({ title: T.toast.deleteFailed.title, description: T.toast.deleteFailed.description, variant: "destructive" });
+      }
+      return updatedImages;
+    });
+    toast({ title: T.toast.deleteSuccess.title });
+  }
+
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
@@ -371,6 +455,45 @@ export default function WackyImageForge() {
       </CardContent>
     </Card>
   );
+
+  const gallerySection = (
+    <div className="space-y-6 mt-12">
+      <h2 className="text-4xl font-black text-center text-foreground tracking-tight">{T.gallery.title}</h2>
+      {galleryImages.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {galleryImages.map((image) => (
+            <Card key={image.id} className="group overflow-hidden relative shadow-lg border-2 border-border rounded-xl">
+              <Image src={image.src} alt={image.prompt} width={512} height={512} className="w-full h-auto object-cover aspect-square" />
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-white text-center text-sm font-body mb-4">{image.prompt}</p>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> {T.gallery.deleteButton}</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>{T.gallery.modalTitle}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {T.gallery.deleteConfirmation}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>{T.gallery.cancelButton}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteFromGallery(image.id)}>{T.gallery.confirmDeleteButton}</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border">
+          <p className="text-muted-foreground text-center font-body text-lg">{T.gallery.empty}</p>
+        </Card>
+      )}
+    </div>
+  )
 
   return (
     <div className="container mx-auto p-4 md:p-8 font-headline">
@@ -477,6 +600,11 @@ export default function WackyImageForge() {
            </div>
         </div>
       </main>
+
+      {user && gallerySection}
+
     </div>
   );
 }
+
+    

@@ -27,9 +27,12 @@ export const translations = {
     },
     gallery: {
       title: 'Your Gallery',
-      empty: 'No images yet. Be the first to create one!',
-      modalTitle: 'Creation Details',
-      deleteButton: 'Delete Image',
+      empty: 'No images yet. Create one to start your collection!',
+      modalTitle: 'Delete Image',
+      deleteButton: 'Delete',
+      deleteConfirmation: 'Are you sure you want to delete this image from your gallery? This action cannot be undone.',
+      cancelButton: 'Cancel',
+      confirmDeleteButton: 'Confirm Delete'
     },
     toast: {
       noKeywords: {
@@ -56,6 +59,7 @@ export const translations = {
       },
       deleteFailed: {
         title: "Delete Failed",
+        description: "Could not delete the image from the gallery.",
       },
       galleryLoadFailed: {
         title: 'Failed to load gallery',
@@ -177,9 +181,12 @@ export const translations = {
     },
     gallery: {
       title: 'Sua Galeria',
-      empty: 'Nenhuma imagem ainda. Seja o primeiro a criar uma!',
-      modalTitle: 'Detalhes da Criação',
-      deleteButton: 'Apagar Imagem',
+      empty: 'Nenhuma imagem ainda. Crie uma para começar sua coleção!',
+      modalTitle: 'Apagar Imagem',
+      deleteButton: 'Apagar',
+      deleteConfirmation: 'Você tem certeza que quer apagar esta imagem da sua galeria? Esta ação não pode ser desfeita.',
+      cancelButton: 'Cancelar',
+      confirmDeleteButton: 'Confirmar e Apagar'
     },
     toast: {
       noKeywords: {
@@ -206,6 +213,7 @@ export const translations = {
       },
       deleteFailed: {
         title: "Falha ao Apagar",
+        description: "Não foi possível apagar a imagem da galeria.",
       },
       galleryLoadFailed: {
         title: 'Falha ao carregar a galeria',
@@ -248,7 +256,7 @@ export const translations = {
           'coding': 'programando',
           'juggling planets': 'malabarando planetas',
           'riding a monocycle': 'andando de monociclo',
-          'soltando fogo pela boca': 'soltando fogo pela boca',
+          'breathing fire': 'soltando fogo pela boca',
         },
       },
       Settings: {
@@ -272,7 +280,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'fotorrealista': 'fotorrealista',
+          'photorealistic': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
@@ -301,3 +309,5 @@ export const translations = {
     }
   },
 };
+
+    
