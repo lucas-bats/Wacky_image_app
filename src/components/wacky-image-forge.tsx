@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { generateImageAction, generateChaosPromptAction } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Cat, Dog, Bird, Bot, Gem, Mountain, Zap, BookOpen, Brush, Code, Bike, Ship, Castle, Cloud, Leaf, Droplets, Flame, Music, Palette, Camera, Square, Glasses, Aperture, VenetianMask, Languages, Dices } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Cat, Dog, Bird, Bot, Mountain, Zap, BookOpen, Brush, Code, Bike, Ship, Castle, Cloud, Leaf, Droplets, Flame, Music, Palette, Camera, Square, Glasses, Aperture, VenetianMask, Languages, Dices } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -118,17 +118,22 @@ export default function WackyImageForge() {
         orderedKeywords.push(selectedKeywords.get(category)!);
       }
     });
-    const keywords = orderedKeywords.join(', ');
     
-    if (language === 'pt' && keywords) {
-        return `Um(a) ${keywords}, no estilo ${selectedKeywords.get(T.categoryNames.Styles) || ''}`;
-    }
-    
-    if (language === 'en' && keywords) {
-       return `A ${keywords}, in ${selectedKeywords.get(T.categoryNames.Styles) || ''} style`;
-    }
+    // Filter out style from the main prompt parts
+    const mainKeywords = orderedKeywords.filter(kw => selectedKeywords.get(T.categoryNames.Styles) !== kw);
+    const style = selectedKeywords.get(T.categoryNames.Styles);
 
-    return keywords;
+    if (mainKeywords.length === 0) return '';
+
+    if (language === 'pt') {
+      const promptParts = mainKeywords.join(', ');
+      return style ? `Um(a) ${promptParts}, no estilo ${style}` : `Um(a) ${promptParts}`;
+    }
+    
+    // English
+    const promptParts = mainKeywords.join(', ');
+    return style ? `A ${promptParts}, in ${style} style` : `A ${promptParts}`;
+
   }, [selectedKeywords, categoryOrder, language, T.categoryNames.Styles]);
 
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
@@ -380,7 +385,7 @@ export default function WackyImageForge() {
             {!isPending && !generatedImage && (
              <Card className={cn(
                 "flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out",
-                generatedImage ? 'h-auto' : 'h-64'
+                "h-64"
              )}>
                 <div className="text-center">
                     <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
@@ -394,5 +399,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
