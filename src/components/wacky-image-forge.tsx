@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
   generateImageAction, 
-  generateChaosPromptAction, 
   getGalleryAction,
   deleteImageAction,
   GalleryImage
@@ -20,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from './auth-provider';
+import { generateChaosPromptAction } from '@/app/actions';
 
 
 type Language = 'en' | 'pt';
@@ -226,12 +226,12 @@ export default function WackyImageForge() {
       setCurrentPrompt(finalizedPrompt);
       const englishKeywords = mapKeywordsToEnglish();
       
-      const { imageUrl, error } = await generateImageAction(user.uid, englishKeywords, finalizedPrompt);
+      const result = await generateImageAction(user.uid, englishKeywords, finalizedPrompt);
       
-      if (error) {
-        toast({ title: T.toast.generationFailed.title, description: error, variant: "destructive" });
-      } else if (imageUrl) {
-        setGeneratedImage(imageUrl);
+      if (result.error) {
+        toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
+      } else if (result.imageUrl) {
+        setGeneratedImage(result.imageUrl);
         // Refetch gallery to show the new image immediately
         const { images } = await getGalleryAction(user.uid);
         setGalleryImages(images);
@@ -295,7 +295,7 @@ export default function WackyImageForge() {
       a.href = url;
       a.download = `${currentPrompt.replace(/[ ,.]/g, '_').slice(0,50) || 'imagem-maluca'}.png`;
       document.body.appendChild(a);
-      a.click();
+a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
