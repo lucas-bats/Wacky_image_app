@@ -618,4 +618,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
