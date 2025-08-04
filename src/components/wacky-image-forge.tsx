@@ -63,22 +63,25 @@ export default function WackyImageForge() {
   useEffect(() => {
     if (!hasLoaded) return;
     
-    let imagesToSave = [...galleryImages];
+    const imagesToSave = [...galleryImages];
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
     } catch (e) {
       if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
         let success = false;
-        for (let i = 0; i < galleryImages.length; i++) {
-          imagesToSave.pop(); 
+        // Make a mutable copy to modify in the loop
+        let mutableImagesToSave = [...imagesToSave];
+        for (let i = 0; i < imagesToSave.length; i++) {
+          mutableImagesToSave.pop(); 
           try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(mutableImagesToSave));
             success = true;
             console.log(`Successfully saved gallery after removing ${i + 1} old image(s).`);
+            setGalleryImages(mutableImagesToSave);
             break; 
           } catch (e2) {
-            // Continue
+            // Continue trying to remove images
           }
         }
         if (!success) {
@@ -616,6 +619,10 @@ export default function WackyImageForge() {
       {!isMobile && (
           <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
             <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="sr-only">{T.imageCard.title}</DialogTitle>
+                <DialogDescription className="sr-only">{currentPrompt}</DialogDescription>
+              </DialogHeader>
               {imageResultCard}
             </DialogContent>
           </Dialog>
