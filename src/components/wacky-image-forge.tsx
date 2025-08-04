@@ -458,7 +458,7 @@ export default function WackyImageForge() {
   );
 
   const imageResultCard = generatedImage && (
-    <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border">
+    <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border max-h-[90vh] overflow-y-auto">
         <CardHeader>
             <CardTitle className="text-3xl">{T.imageCard.title}</CardTitle>
             <CardDescription className="font-body text-lg italic">{currentPrompt}</CardDescription>
