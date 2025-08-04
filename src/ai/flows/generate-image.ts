@@ -34,7 +34,7 @@ const generateImageFlow = ai.defineFlow(
   },
   async input => {
     // Manually construct the prompt string.
-    const promptText = `A ${input.keywords.join(', ')}, in a wacky and fun style.`;
+    const promptText = `A ${input.keywords.join(', ')}, in a wacky and fun style. The image must be square.`;
 
     const {media} = await ai.generate({
       // IMPORTANT: ONLY the googleai/gemini-2.0-flash-preview-image-generation model is able to generate images. You MUST use exactly this model to generate images.
