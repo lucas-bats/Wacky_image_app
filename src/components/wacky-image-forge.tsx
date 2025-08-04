@@ -62,10 +62,37 @@ export default function WackyImageForge() {
 
   useEffect(() => {
     if (!hasLoaded) return;
+    
+    // Create a mutable copy to work with
+    let imagesToSave = [...galleryImages];
+
+    // Attempt to save, and if it fails, start removing old items.
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(galleryImages));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
     } catch (e) {
-      console.error("Could not save new image because gallery is full and couldn't remove the oldest one.", e);
+      console.warn("Saving to localStorage failed, attempting to clear old images...", e);
+      
+      // Check if it's a quota error
+      if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+        // Loop and remove the oldest image until it fits.
+        let success = false;
+        for (let i = 0; i < galleryImages.length; i++) {
+          imagesToSave.pop(); // Remove the oldest image
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
+            success = true;
+            console.log(`Successfully saved gallery after removing ${i + 1} old image(s).`);
+            break; // Exit loop on success
+          } catch (e2) {
+            // Continue loop if it still fails
+          }
+        }
+        if (!success) {
+          console.error("Could not save to localStorage even after removing all images.");
+        }
+      } else {
+        console.error("An unexpected error occurred while saving to localStorage:", e);
+      }
     }
   }, [galleryImages, hasLoaded]);
   
@@ -609,3 +636,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
