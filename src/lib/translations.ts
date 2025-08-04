@@ -34,6 +34,7 @@ export const translations = {
       cancelButton: 'Cancel',
       confirmDeleteButton: 'Confirm Delete',
       openInNewWindow: 'Open',
+      openInNewWindowTitle: 'Image Preview',
     },
     toast: {
       noKeywords: {
@@ -67,6 +68,10 @@ export const translations = {
       },
       gallerySaveFailed: {
           title: 'Failed to save to gallery'
+      },
+      newWindowFailed: {
+        title: 'Could not open new window',
+        description: 'Please check if your browser is blocking pop-ups.',
       }
     },
     categoryNames: {
@@ -189,6 +194,7 @@ export const translations = {
       cancelButton: 'Cancelar',
       confirmDeleteButton: 'Confirmar e Apagar',
       openInNewWindow: 'Abrir',
+      openInNewWindowTitle: 'Visualização de Imagem',
     },
     toast: {
       noKeywords: {
@@ -222,6 +228,10 @@ export const translations = {
       },
       gallerySaveFailed: {
           title: 'Falha ao salvar na galeria'
+      },
+      newWindowFailed: {
+          title: 'Não foi possível abrir a nova janela',
+          description: 'Verifique se o seu navegador está bloqueando pop-ups.',
       }
     },
     categoryNames: {

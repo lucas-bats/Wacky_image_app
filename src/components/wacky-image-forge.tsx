@@ -56,10 +56,9 @@ export default function WackyImageForge() {
       }
     } catch (error) {
       console.error("Failed to load gallery from localStorage", error);
-      toast({ title: T.toast.galleryLoadFailed.title, variant: 'destructive' });
     }
     setHasLoaded(true);
-  }, [T.toast.galleryLoadFailed.title, toast]);
+  }, []);
 
   useEffect(() => {
     if (!hasLoaded) return;
@@ -72,7 +71,7 @@ export default function WackyImageForge() {
         variant: "destructive",
       });
     }
-  }, [galleryImages, hasLoaded, T.toast.gallerySaveFailed.title, toast]);
+  }, [galleryImages, hasLoaded, T.toast.gallerySaveFailed, toast]);
   
 
   useEffect(() => {
@@ -322,6 +321,32 @@ export default function WackyImageForge() {
     }
   };
 
+  const handleOpenInNewWindow = (imageUrl: string) => {
+    const newWindow = window.open();
+    if (newWindow) {
+      newWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${T.gallery.openInNewWindowTitle}</title>
+          <style>
+            body { margin: 0; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+            img { max-width: 100%; max-height: 100%; object-fit: contain; }
+          </style>
+        </head>
+        <body>
+          <img src="${imageUrl}" alt="${currentPrompt}">
+        </body>
+        </html>
+      `);
+      newWindow.document.close();
+    } else {
+        toast({ title: T.toast.newWindowFailed.title, description: T.toast.newWindowFailed.description, variant: "destructive" });
+    }
+  };
+
   const handleShare = async () => {
     if (!generatedImage) return;
 
@@ -437,7 +462,7 @@ export default function WackyImageForge() {
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <p className="text-white text-center text-sm font-body mb-4">{image.prompt}</p>
                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => window.open(image.src, '_blank')}>
+                    <Button variant="outline" size="sm" onClick={() => handleOpenInNewWindow(image.src)}>
                         <ExternalLink className="mr-2 h-4 w-4" /> {T.gallery.openInNewWindow}
                     </Button>
                     <AlertDialog>
@@ -577,3 +602,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
