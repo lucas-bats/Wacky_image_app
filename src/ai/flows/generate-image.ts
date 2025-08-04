@@ -44,7 +44,6 @@ const generateImageFlow = ai.defineFlow(
 
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
-        aspectRatio: '1:1', // Generate a square image
       },
     });
 
