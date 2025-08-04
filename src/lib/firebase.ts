@@ -5,13 +5,12 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  "projectId": "wacky-image-forge",
-  "appId": "1:745776409867:web:a353893980835d8aa6860e",
-  "storageBucket": "wacky-image-forge.firebasestorage.app",
-  "apiKey": "AIzaSyCR7ekEv54OTv0kx3Jci_zucjkQrG0Q6Yk",
-  "authDomain": "wacky-image-forge.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "745776409867"
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
