@@ -9,7 +9,6 @@ import {
   generateImageAction
 } from '@/app/actions';
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -41,7 +40,6 @@ export default function WackyImageForge() {
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [isPending, startTransition] = useTransition();
   const [shouldScroll, setShouldScroll] = useState(false);
-  const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
@@ -611,5 +609,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
