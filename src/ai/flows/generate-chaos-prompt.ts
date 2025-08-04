@@ -47,7 +47,7 @@ const actions = [
   'breathing fire',
 ];
 const settings = [
-  'on Saturn',
+  'in outer space',
   'in a jungle',
   'underwater',
   'in a castle',

@@ -114,7 +114,7 @@ export const translations = {
       Settings: {
         name: 'Settings',
         keywords: {
-          'on Saturn': 'on Saturn',
+          'in outer space': 'in outer space',
           'in a jungle': 'in a jungle',
           'underwater': 'underwater',
           'in a castle': 'in a castle',
@@ -274,7 +274,7 @@ export const translations = {
       Settings: {
         name: 'Cenários',
         keywords: {
-          'on Saturn': 'em Saturno',
+          'in outer space': 'no espaço sideral',
           'in a jungle': 'numa selva',
           'underwater': 'debaixo d\'água',
           'in a castle': 'num castelo',
@@ -321,5 +321,3 @@ export const translations = {
     }
   },
 };
-
-    
