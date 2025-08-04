@@ -7,7 +7,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   "projectId": "wacky-image-forge",
   "appId": "1:745776409867:web:a353893980835d8aa6860e",
-  "storageBucket": "wacky-image-forge.appspot.com",
+  "storageBucket": "wacky-image-forge.firebasestorage.app",
   "apiKey": "AIzaSyCR7ekEv54OTv0kx3Jci_zucjkQrG0Q6Yk",
   "authDomain": "wacky-image-forge.firebaseapp.com",
   "measurementId": "",
