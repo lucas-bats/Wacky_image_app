@@ -608,6 +608,10 @@ export default function WackyImageForge() {
       {!isMobile && (
           <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
             <DialogContent className="max-w-2xl">
+               <DialogHeader>
+                  <DialogTitle>{T.imageCard.title}</DialogTitle>
+                  <DialogDescription>{currentPrompt}</DialogDescription>
+                </DialogHeader>
               {imageResultCard}
             </DialogContent>
           </Dialog>
@@ -618,3 +622,5 @@ export default function WackyImageForge() {
     </div>
   );
 }
+
+    
