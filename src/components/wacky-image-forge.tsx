@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { 
   generateImageAction
 } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2 } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -436,23 +436,28 @@ export default function WackyImageForge() {
               <Image src={image.src} alt={image.prompt} width={512} height={512} className="w-full h-auto object-cover aspect-square" />
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <p className="text-white text-center text-sm font-body mb-4">{image.prompt}</p>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                         <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> {T.gallery.deleteButton}</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>{T.gallery.modalTitle}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {T.gallery.deleteConfirmation}
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>{T.gallery.cancelButton}</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteFromGallery(image.id)}>{T.gallery.confirmDeleteButton}</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                 <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => window.open(image.src, '_blank')}>
+                        <ExternalLink className="mr-2 h-4 w-4" /> {T.gallery.openInNewWindow}
+                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                             <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> {T.gallery.deleteButton}</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>{T.gallery.modalTitle}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    {T.gallery.deleteConfirmation}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>{T.gallery.cancelButton}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteFromGallery(image.id)}>{T.gallery.confirmDeleteButton}</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                 </div>
               </div>
             </Card>
           ))}

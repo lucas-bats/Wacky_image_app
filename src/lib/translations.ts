@@ -32,7 +32,8 @@ export const translations = {
       deleteButton: 'Delete',
       deleteConfirmation: 'Are you sure you want to delete this image from your gallery? This action cannot be undone.',
       cancelButton: 'Cancel',
-      confirmDeleteButton: 'Confirm Delete'
+      confirmDeleteButton: 'Confirm Delete',
+      openInNewWindow: 'Open',
     },
     toast: {
       noKeywords: {
@@ -186,7 +187,8 @@ export const translations = {
       deleteButton: 'Apagar',
       deleteConfirmation: 'Você tem certeza que quer apagar esta imagem da sua galeria? Esta ação não pode ser desfeita.',
       cancelButton: 'Cancelar',
-      confirmDeleteButton: 'Confirmar e Apagar'
+      confirmDeleteButton: 'Confirmar e Apagar',
+      openInNewWindow: 'Abrir',
     },
     toast: {
       noKeywords: {
