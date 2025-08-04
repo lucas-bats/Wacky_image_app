@@ -139,7 +139,7 @@ export default function WackyImageForge() {
       color: 'bg-[#50E3C2]',
       textColor: 'text-white',
       keywords: {
-        'on Saturn': '🪐',
+        'in outer space': '🚀',
         'in a jungle': '🌴',
         'underwater': '🌊',
         'in a castle': '🏰',
