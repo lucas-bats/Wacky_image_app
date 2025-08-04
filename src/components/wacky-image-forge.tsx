@@ -15,7 +15,8 @@ import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 
 type Language = 'en' | 'pt';
@@ -45,6 +46,7 @@ export default function WackyImageForge() {
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [isImageDialogOpen, setImageDialogOpen] = useState(false);
 
   const T = translations[language];
 
@@ -75,11 +77,11 @@ export default function WackyImageForge() {
   
 
   useEffect(() => {
-    if (shouldScroll && imageAreaRef.current) {
+    if (shouldScroll && imageAreaRef.current && isMobile) {
       imageAreaRef.current.scrollIntoView({ behavior: 'smooth' });
       setShouldScroll(false);
     }
-  }, [generatedImage, shouldScroll]);
+  }, [generatedImage, shouldScroll, isMobile]);
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -238,6 +240,9 @@ export default function WackyImageForge() {
         toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
+        if (!isMobile) {
+            setImageDialogOpen(true);
+        }
         
         const newImage: GalleryImage = {
             id: new Date().toISOString(),
@@ -300,6 +305,7 @@ export default function WackyImageForge() {
   const handleRemix = () => {
     setGeneratedImage(null);
     setCurrentPrompt('');
+    setImageDialogOpen(false);
   };
   
   const handleDownload = async () => {
@@ -451,6 +457,23 @@ export default function WackyImageForge() {
     </Card>
   );
 
+  const imageResultCard = generatedImage && (
+    <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border">
+        <CardHeader>
+            <CardTitle className="text-3xl">{T.imageCard.title}</CardTitle>
+            <CardDescription className="font-body text-lg italic">{currentPrompt}</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+            <Image src={generatedImage} alt={currentPrompt} width={1024} height={1024} className="w-full h-auto bg-muted" data-ai-hint="abstract art" />
+        </CardContent>
+        <CardFooter className="flex-wrap gap-2 p-4 bg-muted/50">
+            <Button onClick={handleDownload} className="rounded-lg text-lg h-12 border-b-4 border-blue-800 hover:border-b-2"><Download className="mr-2"/>{T.imageCard.save}</Button>
+            <Button onClick={handleRemix} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Repeat className="mr-2"/>{T.imageCard.remix}</Button>
+            <Button onClick={handleShare} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Share2 className="mr-2"/>{T.imageCard.share}</Button>
+        </CardFooter>
+    </Card>
+  );
+
   const gallerySection = (
     <div className="space-y-6 mt-12">
       <h2 className="text-4xl font-black text-center text-foreground tracking-tight">{T.gallery.title}</h2>
@@ -565,22 +588,7 @@ export default function WackyImageForge() {
               </Card>
             )}
 
-            {!isPending && generatedImage && (
-              <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border">
-                  <CardHeader>
-                      <CardTitle className="text-3xl">{T.imageCard.title}</CardTitle>
-                      <CardDescription className="font-body text-lg italic">{currentPrompt}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                      <Image src={generatedImage} alt={currentPrompt} width={1024} height={1024} className="w-full h-auto bg-muted" data-ai-hint="abstract art" />
-                  </CardContent>
-                  <CardFooter className="flex-wrap gap-2 p-4 bg-muted/50">
-                      <Button onClick={handleDownload} className="rounded-lg text-lg h-12 border-b-4 border-blue-800 hover:border-b-2"><Download className="mr-2"/>{T.imageCard.save}</Button>
-                      <Button onClick={handleRemix} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Repeat className="mr-2"/>{T.imageCard.remix}</Button>
-                      <Button onClick={handleShare} variant="outline" className="rounded-lg text-lg h-12 border-b-4"><Share2 className="mr-2"/>{T.imageCard.share}</Button>
-                  </CardFooter>
-              </Card>
-            )}
+            {!isPending && generatedImage && isMobile && imageResultCard}
 
             {!isPending && !generatedImage && (
              <Card className={cn(
@@ -596,6 +604,14 @@ export default function WackyImageForge() {
            </div>
         </div>
       </main>
+
+      {!isMobile && (
+          <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              {imageResultCard}
+            </DialogContent>
+          </Dialog>
+      )}
 
       {gallerySection}
 
