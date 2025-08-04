@@ -8,13 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { 
   generateImageAction
 } from '@/app/actions';
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, LogOut, Trash2 } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { useAuth } from './auth-provider';
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter } from "@/components/ui/alert-dialog";
 
@@ -32,6 +31,7 @@ interface GalleryImage {
 }
 
 const GALLERY_LIMIT = 12;
+const STORAGE_KEY = 'wackyGallery_local';
 
 export default function WackyImageForge() {
   const [language, setLanguage] = useState<Language>('pt');
@@ -43,42 +43,36 @@ export default function WackyImageForge() {
   const { toast } = useToast();
   const imageAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)")
-  const { user, loading, logout } = useAuth();
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const [storageKey, setStorageKey] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   const T = translations[language];
 
   useEffect(() => {
-    if (user) {
-      setStorageKey(`wackyGallery_${user.uid}`);
-    } else {
-      setStorageKey(null);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (loading) return; 
-
-    if (storageKey) {
-      try {
-        const storedGallery = localStorage.getItem(storageKey);
-        if (storedGallery) {
-          setGalleryImages(JSON.parse(storedGallery));
-        } else {
-          setGalleryImages([]);
-        }
-      } catch (error) {
-        console.error("Failed to load gallery from localStorage", error);
-        toast({ title: T.toast.galleryLoadFailed.title, variant: 'destructive' });
-        setGalleryImages([]);
+    try {
+      const storedGallery = localStorage.getItem(STORAGE_KEY);
+      if (storedGallery) {
+        setGalleryImages(JSON.parse(storedGallery));
       }
-    } else {
-       setGalleryImages([]);
+    } catch (error) {
+      console.error("Failed to load gallery from localStorage", error);
+      toast({ title: T.toast.galleryLoadFailed.title, variant: 'destructive' });
     }
     setHasLoaded(true);
-  }, [storageKey, loading, T.toast.galleryLoadFailed.title, toast]);
+  }, [T.toast.galleryLoadFailed.title, toast]);
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(galleryImages));
+    } catch (e) {
+      toast({
+        title: T.toast.gallerySaveFailed.title,
+        description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
+        variant: "destructive",
+      });
+    }
+  }, [galleryImages, hasLoaded, T.toast.gallerySaveFailed.title, toast]);
   
 
   useEffect(() => {
@@ -87,19 +81,6 @@ export default function WackyImageForge() {
       setShouldScroll(false);
     }
   }, [generatedImage, shouldScroll]);
-  
-  useEffect(() => {
-    if (!hasLoaded || !storageKey) return;
-    try {
-        localStorage.setItem(storageKey, JSON.stringify(galleryImages));
-    } catch (e) {
-         toast({
-          title: T.toast.gallerySaveFailed.title,
-          description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
-          variant: "destructive",
-        });
-    }
-  }, [galleryImages, storageKey, hasLoaded, T.toast.gallerySaveFailed.title, toast])
 
 
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
@@ -236,10 +217,6 @@ export default function WackyImageForge() {
   };
   
   const handleGenerate = () => {
-    if (!user) {
-        toast({ title: "Authentication Error", description: "You must be logged in to generate images.", variant: "destructive" });
-        return;
-    }
     if (selectedKeywords.size === 0) {
       toast({
         title: T.toast.noKeywords.title,
@@ -369,7 +346,6 @@ export default function WackyImageForge() {
   };
 
   const handleDeleteFromGallery = (id: string) => {
-    if (!storageKey) return;
     setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
     toast({ title: T.toast.deleteSuccess.title });
   }
@@ -497,10 +473,6 @@ export default function WackyImageForge() {
                 <Languages className="h-5 w-5" />
                 <span className="sr-only">{T.languageButton}</span>
             </Button>
-            <Button onClick={logout} variant="destructive" size="icon" className='rounded-full'>
-                <LogOut className="h-5 w-5" />
-                <span className="sr-only">{T.auth.logout}</span>
-            </Button>
         </div>
         <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
           {T.title}
@@ -595,10 +567,8 @@ export default function WackyImageForge() {
         </div>
       </main>
 
-      {user && gallerySection}
+      {gallerySection}
 
     </div>
   );
 }
-
-    

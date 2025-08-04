@@ -4,18 +4,15 @@
 import { generateImage } from '@/ai/flows/generate-image';
 import { ChaosPromptOutput, generateRandomPrompt } from '@/ai/flows/generate-chaos-prompt';
 
-// Generate the image with AI, then upload to storage and save metadata to firestore
+// Generate the image with AI
 export async function generateImageAction(keywords: string[]): Promise<{ imageUrl: string | null; error: string | null; }> {
   if (!keywords || keywords.length === 0) {
     return { imageUrl: null, error: 'Please select at least one keyword.' };
   }
 
   try {
-    // 1. Generate image using the AI flow
     const result = await generateImage({ keywords });
-    const imageDataUrl = result.image;
-    
-    return { imageUrl: imageDataUrl, error: null };
+    return { imageUrl: result.image, error: null };
 
   } catch (e: any) {
     console.error("Full error in generateImageAction:", e);

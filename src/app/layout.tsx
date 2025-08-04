@@ -2,7 +2,6 @@ import type {Metadata} from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 import { Lilita_One, Alegreya } from 'next/font/google'
-import { AuthProvider } from '@/components/auth-provider';
 
 const lilitaOne = Lilita_One({
   weight: '400',
@@ -33,10 +32,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
           {children}
           <Toaster />
-        </AuthProvider>
       </body>
     </html>
   );
