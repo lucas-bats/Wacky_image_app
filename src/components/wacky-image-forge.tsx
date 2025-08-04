@@ -67,13 +67,9 @@ export default function WackyImageForge() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(galleryImages));
     } catch (e) {
-      toast({
-        title: T.toast.gallerySaveFailed.title,
-        description: "Could not save new image because gallery is full and couldn't remove the oldest one.",
-        variant: "destructive",
-      });
+      console.error("Could not save new image because gallery is full and couldn't remove the oldest one.", e);
     }
-  }, [galleryImages, hasLoaded, T.toast.gallerySaveFailed, toast]);
+  }, [galleryImages, hasLoaded]);
   
 
   useEffect(() => {
@@ -219,11 +215,7 @@ export default function WackyImageForge() {
   
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
-      toast({
-        title: T.toast.noKeywords.title,
-        description: T.toast.noKeywords.description,
-        variant: "destructive",
-      })
+      console.error(T.toast.noKeywords.title, T.toast.noKeywords.description);
       return;
     }
     
@@ -237,7 +229,7 @@ export default function WackyImageForge() {
       const result = await generateImageAction(englishKeywords);
       
       if (result.error) {
-        toast({ title: T.toast.generationFailed.title, description: result.error, variant: "destructive" });
+        console.error(T.toast.generationFailed.title, result.error);
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
         if (!isMobile) {
@@ -269,7 +261,7 @@ export default function WackyImageForge() {
       setCurrentPrompt('');
       const { error, result } = await generateChaosPromptAction();
       if (error || !result) {
-        toast({ title: T.toast.chaosFailed.title, description: error || T.toast.chaosFailed.description, variant: "destructive"});
+        console.error(T.toast.chaosFailed.title, error || T.toast.chaosFailed.description);
       } else {
         const newSelected = new Map<CategoryName, string>();
         
@@ -323,7 +315,6 @@ export default function WackyImageForge() {
       window.URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Download failed", e);
-      toast({ title: T.toast.downloadFailed.title, description: T.toast.downloadFailed.description, variant: "destructive" });
     }
   };
 
@@ -349,7 +340,7 @@ export default function WackyImageForge() {
       `);
       newWindow.document.close();
     } else {
-        toast({ title: T.toast.newWindowFailed.title, description: T.toast.newWindowFailed.description, variant: "destructive" });
+        console.error(T.toast.newWindowFailed.title, T.toast.newWindowFailed.description);
     }
   };
 
@@ -372,13 +363,11 @@ export default function WackyImageForge() {
         }
     } catch (error) {
         console.error("Sharing failed", error);
-        toast({ title: T.toast.shareFailed.title, description: T.toast.shareFailed.description, variant: "destructive" });
     }
   };
 
   const handleDeleteFromGallery = (id: string) => {
     setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
-    toast({ title: T.toast.deleteSuccess.title });
   }
 
   const toggleLanguage = () => {
