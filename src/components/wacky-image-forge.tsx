@@ -63,28 +63,22 @@ export default function WackyImageForge() {
   useEffect(() => {
     if (!hasLoaded) return;
     
-    // Create a mutable copy to work with
     let imagesToSave = [...galleryImages];
 
-    // Attempt to save, and if it fails, start removing old items.
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
     } catch (e) {
-      console.warn("Saving to localStorage failed, attempting to clear old images...", e);
-      
-      // Check if it's a quota error
       if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-        // Loop and remove the oldest image until it fits.
         let success = false;
         for (let i = 0; i < galleryImages.length; i++) {
-          imagesToSave.pop(); // Remove the oldest image
+          imagesToSave.pop(); 
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
             success = true;
             console.log(`Successfully saved gallery after removing ${i + 1} old image(s).`);
-            break; // Exit loop on success
+            break; 
           } catch (e2) {
-            // Continue loop if it still fails
+            // Continue
           }
         }
         if (!success) {
@@ -622,10 +616,6 @@ export default function WackyImageForge() {
       {!isMobile && (
           <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
             <DialogContent className="max-w-2xl">
-               <DialogHeader>
-                  <DialogTitle>{T.imageCard.title}</DialogTitle>
-                  <DialogDescription>{currentPrompt}</DialogDescription>
-                </DialogHeader>
               {imageResultCard}
             </DialogContent>
           </Dialog>
@@ -636,5 +626,3 @@ export default function WackyImageForge() {
     </div>
   );
 }
-
-    
