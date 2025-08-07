@@ -16,6 +16,8 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
@@ -544,6 +546,7 @@ export default function WackyImageForge() {
   );
 
   return (
+    <TooltipProvider>
       <div className="container mx-auto p-4 md:p-8 font-headline">
         <header className="text-center my-8 md:my-12 relative">
           <div className="absolute top-0 right-0 flex gap-2">
@@ -560,15 +563,14 @@ export default function WackyImageForge() {
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
-              {isMobile && actionButtons}
-            
-              {isMobile && promptBox}
-
-              <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
-                  <p className="font-body text-lg text-foreground">{T.instruction}</p>
-              </div>
+            <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
+                <p className="font-body text-lg text-foreground">{T.instruction}</p>
+            </div>
 
             {isMobile ? (
+              <div className="space-y-8">
+                {actionButtons}
+                {promptBox}
                 <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
                     <TabsTrigger value={T.categoryNames.Animals}>{T.categoryNames.Animals}</TabsTrigger>
@@ -581,6 +583,8 @@ export default function WackyImageForge() {
                   <TabsContent value={T.categoryNames.Settings}>{renderKeywordSelector(T.categoryNames.Settings)}</TabsContent>
                   <TabsContent value={T.categoryNames.Styles}>{renderKeywordSelector(T.categoryNames.Styles)}</TabsContent>
                 </Tabs>
+                {actionButtons}
+              </div>
             ) : (
               <div className="space-y-6">
                 {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
@@ -614,13 +618,13 @@ export default function WackyImageForge() {
               {!isPending && generatedImage && isMobile && imageResultCard}
 
               {!isPending && !generatedImage && isMobile && (
-              <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
-                  <div className="text-center">
-                      <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
-                      <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
-                  </div>
-              </Card>
-            )}
+                 <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
+                    <div className="text-center">
+                        <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
+                        <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
+                    </div>
+                 </Card>
+              )}
             </div>
           </div>
         </main>
@@ -640,5 +644,8 @@ export default function WackyImageForge() {
         {gallerySection}
 
       </div>
+    </TooltipProvider>
   );
 }
+
+    
