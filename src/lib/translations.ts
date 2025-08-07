@@ -296,7 +296,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'fotorrealista': 'fotorrealista',
+          'photorealistic': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
