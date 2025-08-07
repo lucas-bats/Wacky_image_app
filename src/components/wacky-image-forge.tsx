@@ -552,16 +552,12 @@ export default function WackyImageForge() {
                 <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
                   {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
                 </Button>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
-                      <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{T.buttons.chaosTooltip}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div>
+                  <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
+                    <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.chaosTooltip}</p>
+                </div>
               </div>
             
               {isMobile && promptBox}
@@ -643,5 +639,3 @@ export default function WackyImageForge() {
     </TooltipProvider>
   );
 }
-
-    
