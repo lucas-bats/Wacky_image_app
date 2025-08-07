@@ -16,6 +16,7 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 
 type Language = 'en' | 'pt';
@@ -530,106 +531,117 @@ export default function WackyImageForge() {
   )
 
   return (
-    <div className="container mx-auto p-4 md:p-8 font-headline">
-      <header className="text-center my-8 md:my-12 relative">
-        <div className="absolute top-0 right-0 flex gap-2">
-            <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
-                <Languages className="h-5 w-5" />
-                <span className="sr-only">{T.languageButton}</span>
-            </Button>
-        </div>
-        <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
-          {T.title}
-        </h1>
-        <p className="text-muted-foreground mt-4 text-lg md:text-xl font-body">{T.subtitle}</p>
-      </header>
-
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="space-y-8">
-           <div className="flex flex-col gap-4">
-              <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
-                {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+    <TooltipProvider>
+      <div className="container mx-auto p-4 md:p-8 font-headline">
+        <header className="text-center my-8 md:my-12 relative">
+          <div className="absolute top-0 right-0 flex gap-2">
+              <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
+                  <Languages className="h-5 w-5" />
+                  <span className="sr-only">{T.languageButton}</span>
               </Button>
-              <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
-                <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
-              </Button>
-            </div>
-          
-            {isMobile && promptBox}
+          </div>
+          <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
+            {T.title}
+          </h1>
+          <p className="text-muted-foreground mt-4 text-lg md:text-xl font-body">{T.subtitle}</p>
+        </header>
 
-            <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
-                <p className="font-body text-lg text-foreground">{T.instruction}</p>
-            </div>
+        <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="space-y-8">
+            <div className="flex flex-col gap-4">
+                <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
+                  {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
+                      <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{T.buttons.chaosTooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            
+              {isMobile && promptBox}
 
-          {isMobile ? (
-              <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
-                  <TabsTrigger value={T.categoryNames.Animals}>{T.categoryNames.Animals}</TabsTrigger>
-                  <TabsTrigger value={T.categoryNames.Actions}>{T.categoryNames.Actions}</TabsTrigger>
-                  <TabsTrigger value={T.categoryNames.Settings}>{T.categoryNames.Settings}</TabsTrigger>
-                  <TabsTrigger value={T.categoryNames.Styles}>{T.categoryNames.Styles}</TabsTrigger>
-                </TabsList>
-                <TabsContent value={T.categoryNames.Animals}>{renderKeywordSelector(T.categoryNames.Animals)}</TabsContent>
-                <TabsContent value={T.categoryNames.Actions}>{renderKeywordSelector(T.categoryNames.Actions)}</TabsContent>
-                <TabsContent value={T.categoryNames.Settings}>{renderKeywordSelector(T.categoryNames.Settings)}</TabsContent>
-                <TabsContent value={T.categoryNames.Styles}>{renderKeywordSelector(T.categoryNames.Styles)}</TabsContent>
-              </Tabs>
-          ) : (
-            <div className="space-y-6">
-              {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
-                <div key={category}>
-                  <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {renderKeywordButtons(category)}
-                    </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+              <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
+                  <p className="font-body text-lg text-foreground">{T.instruction}</p>
+              </div>
 
-        <div className="sticky top-8 space-y-8">
-          {!isMobile && promptBox}
-           <div ref={imageAreaRef}>
-             {isPending && !generatedImage && (
-              <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
-                  <Loader2 className="w-16 h-16 animate-spin text-primary" />
-                  <p className="font-body text-accent text-lg">{T.status.forging}</p>
-                  <p className="text-muted-foreground text-sm">{T.status.takeAMoment}</p>
+            {isMobile ? (
+                <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+                    <TabsTrigger value={T.categoryNames.Animals}>{T.categoryNames.Animals}</TabsTrigger>
+                    <TabsTrigger value={T.categoryNames.Actions}>{T.categoryNames.Actions}</TabsTrigger>
+                    <TabsTrigger value={T.categoryNames.Settings}>{T.categoryNames.Settings}</TabsTrigger>
+                    <TabsTrigger value={T.categoryNames.Styles}>{T.categoryNames.Styles}</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value={T.categoryNames.Animals}>{renderKeywordSelector(T.categoryNames.Animals)}</TabsContent>
+                  <TabsContent value={T.categoryNames.Actions}>{renderKeywordSelector(T.categoryNames.Actions)}</TabsContent>
+                  <TabsContent value={T.categoryNames.Settings}>{renderKeywordSelector(T.categoryNames.Settings)}</TabsContent>
+                  <TabsContent value={T.categoryNames.Styles}>{renderKeywordSelector(T.categoryNames.Styles)}</TabsContent>
+                </Tabs>
+            ) : (
+              <div className="space-y-6">
+                {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
+                  <div key={category}>
+                    <h2 className="text-3xl font-bold tracking-wider mb-4" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {renderKeywordButtons(category)}
+                      </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="sticky top-8 space-y-8">
+            {!isMobile && promptBox}
+            <div ref={imageAreaRef}>
+              {isPending && !generatedImage && (
+                <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
+                    <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                    <p className="font-body text-accent text-lg">{T.status.forging}</p>
+                    <p className="text-muted-foreground text-sm">{T.status.takeAMoment}</p>
+                </Card>
+              )}
+
+              {!isPending && generatedImage && isMobile && imageResultCard}
+
+              {!isPending && !generatedImage && (
+              <Card className={cn(
+                  "flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out",
+                  !isMobile && "h-64"
+              )}>
+                  <div className="text-center">
+                      <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
+                      <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
+                  </div>
               </Card>
             )}
+            </div>
+          </div>
+        </main>
 
-            {!isPending && generatedImage && isMobile && imageResultCard}
+        {!isMobile && (
+            <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="sr-only">{T.imageCard.title}</DialogTitle>
+                  <DialogDescription className="sr-only">{currentPrompt}</DialogDescription>
+                </DialogHeader>
+                {imageResultCard}
+              </DialogContent>
+            </Dialog>
+        )}
 
-            {!isPending && !generatedImage && (
-             <Card className={cn(
-                "flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out",
-                !isMobile && "h-64"
-             )}>
-                <div className="text-center">
-                    <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
-                    <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
-                </div>
-             </Card>
-          )}
-           </div>
-        </div>
-      </main>
+        {gallerySection}
 
-      {!isMobile && (
-          <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle className="sr-only">{T.imageCard.title}</DialogTitle>
-                <DialogDescription className="sr-only">{currentPrompt}</DialogDescription>
-              </DialogHeader>
-              {imageResultCard}
-            </DialogContent>
-          </Dialog>
-      )}
-
-      {gallerySection}
-
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
+
+    

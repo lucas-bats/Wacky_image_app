@@ -10,6 +10,7 @@ export const translations = {
       generate: 'Generate Image',
       generating: 'Generating...',
       chaos: 'Chaos Mode',
+      chaosTooltip: 'Click here to generate a random combination of keywords!',
     },
     status: {
       forging: 'Forging your wacky image...',
@@ -170,6 +171,7 @@ export const translations = {
       generate: 'Gerar Imagem',
       generating: 'Gerando...',
       chaos: 'Modo Caos',
+      chaosTooltip: 'Clique aqui para gerar uma combinação aleatória de palavras-chave!',
     },
     status: {
       forging: 'Forjando sua imagem maluca...',
@@ -321,3 +323,5 @@ export const translations = {
     }
   },
 };
+
+    
