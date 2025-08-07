@@ -528,6 +528,23 @@ export default function WackyImageForge() {
     </div>
   )
 
+  const actionButtons = (
+      <div className="flex flex-col gap-4">
+        <div>
+          <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
+            {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+          </Button>
+          <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.generateTooltip}</p>
+        </div>
+        <div>
+          <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
+            <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
+          </Button>
+          <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.chaosTooltip}</p>
+        </div>
+      </div>
+  );
+
   return (
     <TooltipProvider>
       <div className="container mx-auto p-4 md:p-8 font-headline">
@@ -546,20 +563,7 @@ export default function WackyImageForge() {
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
-            <div className="flex flex-col gap-4">
-                <div>
-                  <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
-                    {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.generateTooltip}</p>
-                </div>
-                <div>
-                  <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
-                    <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.chaosTooltip}</p>
-                </div>
-              </div>
+              {isMobile && actionButtons}
             
               {isMobile && promptBox}
 
@@ -595,7 +599,12 @@ export default function WackyImageForge() {
           </div>
 
           <div className="sticky top-8 space-y-8">
-            {!isMobile && promptBox}
+            {!isMobile && (
+              <>
+                {actionButtons}
+                {promptBox}
+              </>
+            )}
             <div ref={imageAreaRef}>
               {isPending && !generatedImage && (
                 <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
@@ -625,7 +634,7 @@ export default function WackyImageForge() {
         {!isMobile && (
             <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
               <DialogContent className="max-w-2xl">
-                 <DialogHeader className="sr-only">
+                <DialogHeader className="sr-only">
                   <DialogTitle>{T.imageCard.title}</DialogTitle>
                   <DialogDescription>{currentPrompt}</DialogDescription>
                 </DialogHeader>
@@ -640,3 +649,5 @@ export default function WackyImageForge() {
     </TooltipProvider>
   );
 }
+
+    
