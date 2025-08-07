@@ -15,9 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
+import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
@@ -546,7 +544,6 @@ export default function WackyImageForge() {
   );
 
   return (
-    <TooltipProvider>
       <div className="container mx-auto p-4 md:p-8 font-headline">
         <header className="text-center my-8 md:my-12 relative">
           <div className="absolute top-0 right-0 flex gap-2">
@@ -616,11 +613,8 @@ export default function WackyImageForge() {
 
               {!isPending && generatedImage && isMobile && imageResultCard}
 
-              {!isPending && !generatedImage && (
-              <Card className={cn(
-                  "flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out",
-                  !isMobile && "h-64"
-              )}>
+              {!isPending && !generatedImage && isMobile && (
+              <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
                   <div className="text-center">
                       <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
                       <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
@@ -646,8 +640,5 @@ export default function WackyImageForge() {
         {gallerySection}
 
       </div>
-    </TooltipProvider>
   );
 }
-
-    
