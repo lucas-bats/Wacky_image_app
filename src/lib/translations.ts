@@ -11,6 +11,7 @@ export const translations = {
       generating: 'Generating...',
       chaos: 'Chaos Mode',
       chaosTooltip: 'Click here to generate a random combination of keywords!',
+      generateTooltip: 'Create an image based on your selected keywords.',
     },
     status: {
       forging: 'Forging your wacky image...',
@@ -172,6 +173,7 @@ export const translations = {
       generating: 'Gerando...',
       chaos: 'Modo Caos',
       chaosTooltip: 'Clique aqui para gerar uma combinação aleatória de palavras-chave!',
+      generateTooltip: 'Crie uma imagem com base nas palavras-chave selecionadas.',
     },
     status: {
       forging: 'Forjando sua imagem maluca...',
@@ -294,7 +296,7 @@ export const translations = {
           'pixel art': 'arte em pixel',
           '3D render': 'renderização 3D',
           'cartoon': 'desenho animado',
-          'photorealistic': 'fotorrealista',
+          'fotorrealista': 'fotorrealista',
           'oil painting': 'pintura a óleo',
           'watercolor': 'aquarela',
           'cyberpunk': 'cyberpunk',
@@ -323,5 +325,3 @@ export const translations = {
     }
   },
 };
-
-    

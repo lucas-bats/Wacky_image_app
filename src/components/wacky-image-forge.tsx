@@ -71,7 +71,6 @@ export default function WackyImageForge() {
     } catch (e) {
       if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
         let success = false;
-        // Make a mutable copy to modify in the loop
         let mutableImagesToSave = [...imagesToSave];
         for (let i = 0; i < imagesToSave.length; i++) {
           mutableImagesToSave.pop(); 
@@ -82,7 +81,6 @@ export default function WackyImageForge() {
             setGalleryImages(mutableImagesToSave);
             break; 
           } catch (e2) {
-            // Continue trying to remove images
           }
         }
         if (!success) {
@@ -549,9 +547,12 @@ export default function WackyImageForge() {
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
             <div className="flex flex-col gap-4">
-                <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
-                  {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
-                </Button>
+                <div>
+                  <Button onClick={handleGenerate} disabled={isPending || selectedKeywords.size === 0} size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-pink-800 hover:border-b-2">
+                    {isPending ? <><Loader2 className="mr-2 h-6 w-6 animate-spin" /> {T.buttons.generating}</> : <><Sparkles className="mr-2 h-6 w-6" /> {T.buttons.generate}</>}
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2 text-center px-4">{T.buttons.generateTooltip}</p>
+                </div>
                 <div>
                   <Button onClick={handleChaos} disabled={isPending} variant="secondary" size="lg" className="w-full text-2xl h-16 rounded-xl border-b-4 border-purple-800 hover:border-b-2">
                     <Wand2 className="mr-2 h-6 w-6" /> {T.buttons.chaos}
@@ -624,9 +625,9 @@ export default function WackyImageForge() {
         {!isMobile && (
             <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
               <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="sr-only">{T.imageCard.title}</DialogTitle>
-                  <DialogDescription className="sr-only">{currentPrompt}</DialogDescription>
+                 <DialogHeader className="sr-only">
+                  <DialogTitle>{T.imageCard.title}</DialogTitle>
+                  <DialogDescription>{currentPrompt}</DialogDescription>
                 </DialogHeader>
                 {imageResultCard}
               </DialogContent>
