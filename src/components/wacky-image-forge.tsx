@@ -1,16 +1,22 @@
 
 "use client";
 
+// Importações de hooks e bibliotecas do React.
 import { useState, useMemo, useTransition, ReactNode, useRef, useEffect } from 'react';
+// Importação do componente Image do Next.js para otimização de imagens.
 import Image from 'next/image';
+// Importações de componentes de UI da biblioteca ShadCN.
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
   generateImageAction
 } from '@/app/actions';
+// Importação de ícones da biblioteca lucide-react.
 import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink } from 'lucide-react';
+// Importação de utilitários e traduções.
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
+// Importações adicionais de componentes de UI.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
@@ -37,6 +43,11 @@ interface GalleryImage {
 const GALLERY_LIMIT = 12;
 const STORAGE_KEY = 'wackyGallery_local';
 
+/**
+ * Componente principal da aplicação "Wacky Image Forge".
+ * Permite ao usuário selecionar palavras-chave para gerar imagens,
+ * salvá-las em uma galeria local e alternar entre idiomas.
+ */
 export default function WackyImageForge() {
   // Estado para o idioma atual da interface.
   const [language, setLanguage] = useState<Language>('pt');
@@ -194,6 +205,7 @@ export default function WackyImageForge() {
   const promptText = useMemo(() => {
     const orderedKeywords: string[] = [];
     
+    // Itera sobre a ordem definida para manter a consistência do prompt.
     categoryOrder.forEach(category => {
       const selectedKeyword = selectedKeywords.get(category);
       if (selectedKeyword) {
@@ -203,9 +215,11 @@ export default function WackyImageForge() {
 
     if (orderedKeywords.length === 0) return '';
     
+    // Extrai o estilo para formatação especial na frase.
     const style = selectedKeywords.get(T.categoryNames.Styles);
     
     const displayKeywords = orderedKeywords.filter(kw => kw !== style);
+    // Formata o prompt com base no idioma.
     if (language === 'pt') {
       const promptParts = displayKeywords.join(', ');
       return style ? `Um(a) ${promptParts}, no estilo ${style}` : `Um(a) ${promptParts}`;
@@ -216,10 +230,16 @@ export default function WackyImageForge() {
 
   }, [selectedKeywords, categoryOrder, language, T]);
 
-  // Manipulador para selecionar ou deselecionar uma palavra-chave.
+  /**
+   * Manipula o clique em uma palavra-chave.
+   * Adiciona, remove ou atualiza a palavra-chave selecionada para uma categoria.
+   * @param category - A categoria da palavra-chave.
+   * @param keyword - A palavra-chave selecionada.
+   */
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
     
+    // Se a palavra-chave já estiver selecionada, deseleciona. Caso contrário, seleciona.
     if (newMap.get(category) === keyword) {
       newMap.delete(category);
     } else {
@@ -228,7 +248,11 @@ export default function WackyImageForge() {
     setSelectedKeywords(newMap);
   };
 
-  // Mapeia as palavras-chave selecionadas (que podem estar em PT) para o inglês antes de enviar para a API.
+  /**
+   * Mapeia as palavras-chave selecionadas (que podem estar em PT) para o inglês
+   * antes de enviar para a API de geração de imagem.
+   * @returns Um array de palavras-chave em inglês.
+   */
   const mapKeywordsToEnglish = (): string[] => {
     const englishKeywords: string[] = [];
     if (language === 'en') {
@@ -257,7 +281,10 @@ export default function WackyImageForge() {
     return englishKeywords;
   };
   
-  // Manipulador para o botão "Gerar Imagem".
+  /**
+   * Manipula a ação de gerar imagem.
+   * Constrói o prompt, chama a server action e atualiza o estado com a imagem gerada.
+   */
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
       console.error(T.toast.noKeywords.title, T.toast.noKeywords.description);
@@ -300,7 +327,10 @@ export default function WackyImageForge() {
     });
   };
   
-  // Manipulador para o botão "Modo Caos".
+  /**
+   * Ativa o "Modo Caos", que seleciona palavras-chave aleatórias.
+   * Chama uma server action para obter uma combinação aleatória e atualiza as seleções.
+   */
   const handleChaos = () => {
     setShouldScroll(false);
     startTransition(async () => {
@@ -312,6 +342,7 @@ export default function WackyImageForge() {
       } else {
         const newSelected = new Map<CategoryName, string>();
         
+        // Função auxiliar para encontrar a chave de um objeto pelo seu valor (case-insensitive).
         const findKeyByValue = (obj: {[key: string]: string}, value: string) => {
             if (!value) return undefined;
             const V = value.toLowerCase().trim();
@@ -342,14 +373,18 @@ export default function WackyImageForge() {
     });
   };
 
-  // Limpa a imagem gerada para permitir uma nova seleção de palavras-chave.
+  /**
+   * Limpa a imagem gerada para permitir uma nova seleção de palavras-chave.
+   */
   const handleRemix = () => {
     setGeneratedImage(null);
     setCurrentPrompt('');
     setImageDialogOpen(false);
   };
   
-  // Manipulador para baixar a imagem gerada.
+  /**
+   * Manipula o download da imagem gerada.
+   */
   const handleDownload = async () => {
     if (!generatedImage) return;
     try {
@@ -368,7 +403,10 @@ export default function WackyImageForge() {
     }
   };
 
-  // Abre a imagem da galeria em uma nova janela para melhor visualização.
+  /**
+   * Abre a imagem da galeria em uma nova janela para melhor visualização.
+   * @param imageUrl - A URL da imagem a ser aberta.
+   */
   const handleOpenInNewWindow = (imageUrl: string) => {
     const newWindow = window.open();
     if (newWindow) {
@@ -395,7 +433,10 @@ export default function WackyImageForge() {
     }
   };
 
-  // Manipulador para compartilhar a imagem usando a API Web Share.
+  /**
+   * Manipula o compartilhamento da imagem usando a API Web Share.
+   * Se a API não estiver disponível, faz o download da imagem como fallback.
+   */
   const handleShare = async () => {
     if (!generatedImage) return;
 
@@ -419,16 +460,22 @@ export default function WackyImageForge() {
     }
   };
 
-  // Remove uma imagem da galeria.
+  /**
+   * Remove uma imagem da galeria.
+   * @param id - O ID da imagem a ser removida.
+   */
   const handleDeleteFromGallery = (id: string) => {
     setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
   }
 
-  // Alterna o idioma da interface e atualiza as palavras-chave selecionadas para o novo idioma.
+  /**
+   * Alterna o idioma da interface e atualiza as palavras-chave selecionadas para o novo idioma.
+   */
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
 
+    // Traduz as palavras-chave já selecionadas para o novo idioma.
     const newSelectedKeywords = new Map<CategoryName, string>();
     const oldLang = translations[language];
     const newLangTranslations = translations[newLang];
@@ -453,7 +500,11 @@ export default function WackyImageForge() {
     setSelectedKeywords(newSelectedKeywords);
   };
 
-  // Função para renderizar os botões de palavra-chave para uma categoria.
+  /**
+   * Renderiza os botões de palavra-chave para uma determinada categoria.
+   * @param category - A categoria para a qual renderizar os botões.
+   * @returns Um array de elementos de botão.
+   */
   const renderKeywordButtons = (category: CategoryName) => {
     const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
     const translatedKeywords = T.keywordCategories[categoryKey].keywords;
@@ -481,7 +532,11 @@ export default function WackyImageForge() {
     });
   };
   
-  // Função para renderizar a seção de seleção de palavras-chave para uma categoria.
+  /**
+   * Renderiza a seção completa de seleção de palavras-chave para uma categoria.
+   * @param category - A categoria a ser renderizada.
+   * @returns Um elemento JSX com o seletor de palavras-chave.
+   */
   const renderKeywordSelector = (category: CategoryName) => (
       <div key={category}>
         <h2 className="text-3xl font-bold tracking-wider mb-4 md:hidden" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
