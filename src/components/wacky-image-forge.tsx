@@ -19,11 +19,13 @@ import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } f
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
+// Define os tipos para o estado de internacionalização e categorias de palavras-chave.
 type Language = 'en' | 'pt';
 type KeywordCategories = (typeof translations)[Language]['keywordCategories'];
 type Category = keyof KeywordCategories;
 type CategoryName = (typeof translations)[Language]['categoryNames'][Category];
 
+// Define a interface para as imagens da galeria.
 interface GalleryImage {
   id: string;
   src: string;
@@ -31,24 +33,38 @@ interface GalleryImage {
   createdAt: string;
 }
 
+// Constantes para o limite da galeria e a chave de armazenamento local.
 const GALLERY_LIMIT = 12;
 const STORAGE_KEY = 'wackyGallery_local';
 
 export default function WackyImageForge() {
+  // Estado para o idioma atual da interface.
   const [language, setLanguage] = useState<Language>('pt');
+  // Estado para armazenar as palavras-chave selecionadas pelo usuário.
   const [selectedKeywords, setSelectedKeywords] = useState<Map<CategoryName, string>>(new Map());
+  // Estado para a URL da imagem gerada.
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  // Estado para o prompt usado na geração da imagem.
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
+  // Hook de transição para lidar com estados de carregamento sem bloquear a UI.
   const [isPending, startTransition] = useTransition();
+  // Estado para controlar a rolagem automática para a área da imagem em dispositivos móveis.
   const [shouldScroll, setShouldScroll] = useState(false);
+  // Ref para a área da imagem para rolagem.
   const imageAreaRef = useRef<HTMLDivElement>(null);
+  // Hook para detectar se a visualização é móvel.
   const isMobile = useMediaQuery("(max-width: 768px)")
+  // Estado para as imagens da galeria do usuário.
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  // Estado para garantir que a galeria foi carregada do localStorage antes de salvar.
   const [hasLoaded, setHasLoaded] = useState(false);
+  // Estado para controlar a visibilidade do diálogo da imagem em desktop.
   const [isImageDialogOpen, setImageDialogOpen] = useState(false);
 
+  // Acesso rápido às traduções do idioma selecionado.
   const T = translations[language];
 
+  // Efeito para carregar a galeria do localStorage na montagem do componente.
   useEffect(() => {
     try {
       const storedGallery = localStorage.getItem(STORAGE_KEY);
@@ -61,6 +77,7 @@ export default function WackyImageForge() {
     setHasLoaded(true);
   }, []);
 
+  // Efeito para salvar a galeria no localStorage sempre que ela for atualizada.
   useEffect(() => {
     if (!hasLoaded) return;
     
@@ -69,6 +86,7 @@ export default function WackyImageForge() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(imagesToSave));
     } catch (e) {
+      // Trata o erro de cota excedida no localStorage, removendo imagens antigas para liberar espaço.
       if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
         let success = false;
         let mutableImagesToSave = [...imagesToSave];
@@ -81,6 +99,7 @@ export default function WackyImageForge() {
             setGalleryImages(mutableImagesToSave);
             break; 
           } catch (e2) {
+            // Continua tentando se a remoção de uma imagem não for suficiente.
           }
         }
         if (!success) {
@@ -92,7 +111,7 @@ export default function WackyImageForge() {
     }
   }, [galleryImages, hasLoaded]);
   
-
+  // Efeito para rolar a tela para a imagem gerada em dispositivos móveis.
   useEffect(() => {
     if (shouldScroll && imageAreaRef.current && isMobile) {
       imageAreaRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -101,6 +120,7 @@ export default function WackyImageForge() {
   }, [generatedImage, shouldScroll, isMobile]);
 
 
+  // Objeto de configuração para as categorias de palavras-chave, incluindo cores e emojis.
   const keywordCategories: { [key: string]: { color: string; textColor: string; keywords: { [key: string]: ReactNode } } } = {
     [T.categoryNames.Animals]: {
       color: 'bg-[#70C46B]',
@@ -139,7 +159,6 @@ export default function WackyImageForge() {
       textColor: 'text-white',
       keywords: {
         'in outer space': '🚀',
-        'in a jungle': '🌴',
         'underwater': '🌊',
         'in a castle': '🏰',
         'on a mountain top': '⛰️',
@@ -168,8 +187,10 @@ export default function WackyImageForge() {
     },
   };
 
+  // Define a ordem em que as categorias devem aparecer na UI.
   const categoryOrder = Object.keys(keywordCategories) as CategoryName[];
 
+  // Memoiza o texto do prompt gerado a partir das palavras-chave selecionadas.
   const promptText = useMemo(() => {
     const orderedKeywords: string[] = [];
     
@@ -195,6 +216,7 @@ export default function WackyImageForge() {
 
   }, [selectedKeywords, categoryOrder, language, T]);
 
+  // Manipulador para selecionar ou deselecionar uma palavra-chave.
   const handleKeywordClick = (category: CategoryName, keyword: string) => {
     const newMap = new Map(selectedKeywords);
     
@@ -206,6 +228,7 @@ export default function WackyImageForge() {
     setSelectedKeywords(newMap);
   };
 
+  // Mapeia as palavras-chave selecionadas (que podem estar em PT) para o inglês antes de enviar para a API.
   const mapKeywordsToEnglish = (): string[] => {
     const englishKeywords: string[] = [];
     if (language === 'en') {
@@ -234,6 +257,7 @@ export default function WackyImageForge() {
     return englishKeywords;
   };
   
+  // Manipulador para o botão "Gerar Imagem".
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
       console.error(T.toast.noKeywords.title, T.toast.noKeywords.description);
@@ -264,6 +288,7 @@ export default function WackyImageForge() {
             createdAt: new Date().toISOString(),
         };
 
+        // Adiciona a nova imagem à galeria e mantém o limite.
         setGalleryImages(prevImages => {
             const updatedImages = [newImage, ...prevImages];
             if (updatedImages.length > GALLERY_LIMIT) {
@@ -275,6 +300,7 @@ export default function WackyImageForge() {
     });
   };
   
+  // Manipulador para o botão "Modo Caos".
   const handleChaos = () => {
     setShouldScroll(false);
     startTransition(async () => {
@@ -295,6 +321,7 @@ export default function WackyImageForge() {
             return undefined;
         }
         
+        // Mapeia os resultados aleatórios em inglês de volta para o idioma atual da UI.
         const enCategories = translations.en.keywordCategories;
         const currentLangCategories = T.keywordCategories;
 
@@ -315,12 +342,14 @@ export default function WackyImageForge() {
     });
   };
 
+  // Limpa a imagem gerada para permitir uma nova seleção de palavras-chave.
   const handleRemix = () => {
     setGeneratedImage(null);
     setCurrentPrompt('');
     setImageDialogOpen(false);
   };
   
+  // Manipulador para baixar a imagem gerada.
   const handleDownload = async () => {
     if (!generatedImage) return;
     try {
@@ -339,6 +368,7 @@ export default function WackyImageForge() {
     }
   };
 
+  // Abre a imagem da galeria em uma nova janela para melhor visualização.
   const handleOpenInNewWindow = (imageUrl: string) => {
     const newWindow = window.open();
     if (newWindow) {
@@ -365,6 +395,7 @@ export default function WackyImageForge() {
     }
   };
 
+  // Manipulador para compartilhar a imagem usando a API Web Share.
   const handleShare = async () => {
     if (!generatedImage) return;
 
@@ -380,6 +411,7 @@ export default function WackyImageForge() {
                 files: [file],
             });
         } else {
+            // Fallback para download se a API de compartilhamento não estiver disponível.
             handleDownload();
         }
     } catch (error) {
@@ -387,10 +419,12 @@ export default function WackyImageForge() {
     }
   };
 
+  // Remove uma imagem da galeria.
   const handleDeleteFromGallery = (id: string) => {
     setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
   }
 
+  // Alterna o idioma da interface e atualiza as palavras-chave selecionadas para o novo idioma.
   const toggleLanguage = () => {
     const newLang = language === 'en' ? 'pt' : 'en';
     setLanguage(newLang);
@@ -419,6 +453,7 @@ export default function WackyImageForge() {
     setSelectedKeywords(newSelectedKeywords);
   };
 
+  // Função para renderizar os botões de palavra-chave para uma categoria.
   const renderKeywordButtons = (category: CategoryName) => {
     const categoryKey = Object.keys(T.categoryNames).find(k => T.categoryNames[k as Category] === category) as Category;
     const translatedKeywords = T.keywordCategories[categoryKey].keywords;
@@ -446,6 +481,7 @@ export default function WackyImageForge() {
     });
   };
   
+  // Função para renderizar a seção de seleção de palavras-chave para uma categoria.
   const renderKeywordSelector = (category: CategoryName) => (
       <div key={category}>
         <h2 className="text-3xl font-bold tracking-wider mb-4 md:hidden" style={{color: keywordCategories[category].color.replace(/bg-\[|\]/g, '')}}>{category.toUpperCase()}</h2>
@@ -455,6 +491,7 @@ export default function WackyImageForge() {
       </div>
   );
 
+  // JSX para a caixa que exibe o prompt atual.
   const promptBox = (
     <Card className="shadow-lg border-4 border-border rounded-2xl bg-card">
       <CardContent className="p-6">
@@ -467,6 +504,7 @@ export default function WackyImageForge() {
     </Card>
   );
 
+  // JSX para o card que exibe o resultado da imagem gerada.
   const imageResultCard = generatedImage && (
     <Card className="shadow-xl overflow-hidden animate-in fade-in zoom-in-95 rounded-2xl border-4 border-border max-h-[90vh] overflow-y-auto">
         <CardHeader>
@@ -484,6 +522,7 @@ export default function WackyImageForge() {
     </Card>
   );
 
+  // JSX para a seção da galeria de imagens.
   const gallerySection = (
     <div className="space-y-6 mt-12">
       <h2 className="text-4xl font-black text-center text-foreground tracking-tight">{T.gallery.title}</h2>
@@ -528,6 +567,7 @@ export default function WackyImageForge() {
     </div>
   )
 
+  // JSX para os botões de ação principais (Gerar e Modo Caos).
   const actionButtons = (
       <div className="flex flex-col gap-4">
         <div>
@@ -548,6 +588,7 @@ export default function WackyImageForge() {
   return (
     <TooltipProvider>
       <div className="container mx-auto p-4 md:p-8 font-headline">
+        {/* Cabeçalho da página */}
         <header className="text-center my-8 md:my-12 relative">
           <div className="absolute top-0 right-0 flex gap-2">
               <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
@@ -561,13 +602,15 @@ export default function WackyImageForge() {
           <p className="text-muted-foreground mt-4 text-lg md:text-xl font-body">{T.subtitle}</p>
         </header>
 
+        {/* Conteúdo principal da página com layout de duas colunas em desktop */}
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
             <div className="text-center bg-muted p-4 rounded-xl border-2 border-border">
                 <p className="font-body text-lg text-foreground">{T.instruction}</p>
             </div>
 
-            {isMobile ? (
+            {/* Layout para dispositivos móveis */}
+            {isMobile && (
               <div className="space-y-8">
                 {actionButtons}
                 {promptBox}
@@ -585,7 +628,10 @@ export default function WackyImageForge() {
                 </Tabs>
                 {actionButtons}
               </div>
-            ) : (
+            )}
+            
+            {/* Layout para desktop */}
+            {!isMobile && (
               <div className="space-y-6">
                 {(Object.keys(keywordCategories) as CategoryName[]).map((category) => (
                   <div key={category}>
@@ -599,6 +645,7 @@ export default function WackyImageForge() {
             )}
           </div>
 
+          {/* Coluna da direita (resultados e ações em desktop) */}
           <div className="sticky top-8 space-y-8">
             {!isMobile && (
               <>
@@ -607,6 +654,7 @@ export default function WackyImageForge() {
               </>
             )}
             <div ref={imageAreaRef}>
+              {/* Indicador de carregamento */}
               {isPending && !generatedImage && (
                 <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-background/50 transition-all duration-300 border-4 border-dashed border-border aspect-square">
                     <Loader2 className="w-16 h-16 animate-spin text-primary" />
@@ -615,8 +663,10 @@ export default function WackyImageForge() {
                 </Card>
               )}
 
+              {/* Exibe o resultado da imagem no celular */}
               {!isPending && generatedImage && isMobile && imageResultCard}
 
+              {/* Placeholder da imagem no celular quando nenhuma imagem foi gerada */}
               {!isPending && !generatedImage && isMobile && (
                  <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
                     <div className="text-center">
@@ -629,6 +679,7 @@ export default function WackyImageForge() {
           </div>
         </main>
 
+        {/* Diálogo para exibir a imagem gerada em tela cheia no desktop */}
         {!isMobile && (
             <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
               <DialogContent className="max-w-2xl">
@@ -641,11 +692,10 @@ export default function WackyImageForge() {
             </Dialog>
         )}
 
+        {/* Seção da galeria */}
         {gallerySection}
 
       </div>
     </TooltipProvider>
   );
 }
-
-    
