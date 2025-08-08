@@ -1,4 +1,5 @@
 
+
 "use client";
 
 // Importações de hooks e bibliotecas do React.
@@ -25,6 +26,7 @@ import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from './ui/separator';
 
 
 // Define os tipos para o estado de internacionalização e categorias de palavras-chave.
@@ -664,7 +666,7 @@ export default function WackyImageForge() {
     </div>
   );
 
-    // JSX para a seção de doação via Pix.
+    // JSX para a seção de doação.
     const donationSection = (
       <div className="mt-12">
         <Card className="shadow-lg border-2 border-border rounded-2xl bg-card text-center">
@@ -672,15 +674,35 @@ export default function WackyImageForge() {
             <CardTitle className="text-3xl font-black">{T.donations.title}</CardTitle>
             <CardDescription className="font-body text-lg">{T.donations.description}</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            <p className="font-bold text-accent">{T.donations.pixTitle}</p>
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input type="text" value={T.donations.pixKey} readOnly className="text-center font-mono" />
-              <Button onClick={handleCopyPixKey} variant="outline" size="icon">
-                <Copy className="h-4 w-4" />
-                <span className="sr-only">{T.donations.copyButton}</span>
-              </Button>
+          <CardContent className="flex flex-col items-center gap-6 p-6">
+            {/* Seção PIX */}
+            <div className='w-full'>
+              <p className="font-bold text-accent mb-2">{T.donations.pixTitle}</p>
+              <div className="flex w-full max-w-sm mx-auto items-center space-x-2">
+                <Input type="text" value={T.donations.pixKey} readOnly className="text-center font-mono" />
+                <Button onClick={handleCopyPixKey} variant="outline" size="icon">
+                  <Copy className="h-4 w-4" />
+                  <span className="sr-only">{T.donations.copyButton}</span>
+                </Button>
+              </div>
             </div>
+            
+            <Separator className='my-2'/>
+
+            {/* Seção PayPal */}
+            <div className='w-full'>
+              <p className="font-bold text-accent mb-2">{T.donations.paypalTitle}</p>
+              <a 
+                href={`https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=${T.donations.paypalEmail}&item_name=Donation+for+Wacky+Image+Forge&currency_code=${language === 'pt' ? 'BRL' : 'USD'}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button className="w-full max-w-sm mx-auto bg-[#00457C] hover:bg-[#003057] text-white rounded-lg text-lg h-12 border-b-4 border-[#00213d] hover:border-b-2">
+                  {T.donations.paypalButton}
+                </Button>
+              </a>
+            </div>
+
           </CardContent>
         </Card>
       </div>
@@ -811,5 +833,3 @@ export default function WackyImageForge() {
     </TooltipProvider>
   );
 }
-
-    

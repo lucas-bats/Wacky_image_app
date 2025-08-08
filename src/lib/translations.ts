@@ -45,6 +45,9 @@ export const translations = {
       pixKey: '06e37bed-6cbc-4901-97f1-c5b7f1e154b1',
       copyButton: 'Copy Key',
       toastCopied: 'PIX key copied to clipboard!',
+      paypalTitle: 'Donate with PayPal',
+      paypalButton: 'Donate via PayPal',
+      paypalEmail: 'lucaspaesbatista@yahoo.com.br',
     },
     toast: {
       noKeywords: {
@@ -215,6 +218,9 @@ export const translations = {
       pixKey: '06e37bed-6cbc-4901-97f1-c5b7f1e154b1',
       copyButton: 'Copiar Chave',
       toastCopied: 'Chave PIX copiada para a área de transferência!',
+      paypalTitle: 'Doe com PayPal',
+      paypalButton: 'Doar via PayPal',
+      paypalEmail: 'lucaspaesbatista@yahoo.com.br',
     },
     toast: {
       noKeywords: {
