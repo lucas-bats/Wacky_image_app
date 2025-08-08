@@ -678,6 +678,15 @@ export default function WackyImageForge() {
             {/* Seção PIX */}
             <div className='w-full'>
               <p className="font-bold text-accent mb-2">{T.donations.pixTitle}</p>
+               <div className="flex justify-center mb-4">
+                <Image
+                    src="https://firebasestorage.googleapis.com/v0/b/wacky-image-forge.firebasestorage.app/o/8f40ec9d-e457-4987-b792-c9d3dbd30b59.jpg?alt=media&token=f05a9045-0b35-452e-9acc-b27e45649dd9"
+                    alt="QR Code PIX"
+                    width={200}
+                    height={200}
+                    className="rounded-lg border-4 border-border"
+                />
+              </div>
               <div className="flex w-full max-w-sm mx-auto items-center space-x-2">
                 <Input type="text" value={T.donations.pixKey} readOnly className="text-center font-mono" />
                 <Button onClick={handleCopyPixKey} variant="outline" size="icon">
