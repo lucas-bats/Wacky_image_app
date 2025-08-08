@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from './ui/separator';
 
@@ -179,6 +179,7 @@ export default function WackyImageForge() {
       textColor: 'text-white',
       keywords: {
         'in outer space': '🚀',
+        'in a jungle': '🌳',
         'underwater': '🌊',
         'in a castle': '🏰',
         'on a mountain top': '⛰️',
@@ -851,7 +852,6 @@ export default function WackyImageForge() {
             <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
               <DialogContent className="max-w-2xl">
                 <DialogHeader className="sr-only">
-                  <DialogTitle>{T.imageCard.title}</DialogTitle>
                   <DialogDescription>{currentPrompt}</DialogDescription>
                 </DialogHeader>
                 {imageResultCard}
