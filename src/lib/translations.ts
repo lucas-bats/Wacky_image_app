@@ -48,6 +48,7 @@ export const translations = {
       paypalTitle: 'Donate with PayPal',
       paypalButton: 'Donate via PayPal',
       paypalEmail: 'lucaspaesbatista@yahoo.com.br',
+      supportButton: 'Support the project'
     },
     toast: {
       noKeywords: {
@@ -221,6 +222,7 @@ export const translations = {
       paypalTitle: 'Doe com PayPal',
       paypalButton: 'Doar via PayPal',
       paypalEmail: 'lucaspaesbatista@yahoo.com.br',
+      supportButton: 'Apoie o projeto',
     },
     toast: {
       noKeywords: {

@@ -15,7 +15,7 @@ import {
   generateImageAction
 } from '@/app/actions';
 // Importação de ícones da biblioteca lucide-react.
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink, Copy } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink, Copy, Heart } from 'lucide-react';
 // Importação de utilitários e traduções.
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from './ui/separator';
 
@@ -67,6 +67,8 @@ export default function WackyImageForge() {
   const [shouldScroll, setShouldScroll] = useState(false);
   // Ref para a área da imagem para rolagem.
   const imageAreaRef = useRef<HTMLDivElement>(null);
+  // Ref para a seção de doações.
+  const donationSectionRef = useRef<HTMLDivElement>(null);
   // Hook para detectar se a visualização é móvel.
   const isMobile = useMediaQuery("(max-width: 768px)")
   // Estado para as imagens da galeria do usuário.
@@ -545,6 +547,13 @@ export default function WackyImageForge() {
   };
 
   /**
+   * Rola a página para a seção de doações.
+   */
+  const handleScrollToDonations = () => {
+    donationSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  /**
    * Renderiza os botões de palavra-chave para uma determinada categoria.
    * @param category - A categoria para a qual renderizar os botões.
    * @returns Um array de elementos de botão.
@@ -668,7 +677,7 @@ export default function WackyImageForge() {
 
     // JSX para a seção de doação.
     const donationSection = (
-      <div className="mt-12">
+      <div className="mt-12" ref={donationSectionRef}>
         <Card className="shadow-lg border-2 border-border rounded-2xl bg-card text-center">
           <CardHeader>
             <CardTitle className="text-3xl font-black">{T.donations.title}</CardTitle>
@@ -741,10 +750,28 @@ export default function WackyImageForge() {
         {/* Cabeçalho da página */}
         <header className="text-center my-8 md:my-12 relative">
           <div className="absolute top-0 right-0 flex gap-2">
-              <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
-                  <Languages className="h-5 w-5" />
-                  <span className="sr-only">{T.languageButton}</span>
-              </Button>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button onClick={handleScrollToDonations} variant="outline" size="icon" className='rounded-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300'>
+                          <Heart className="h-5 w-5" />
+                          <span className="sr-only">{T.donations.supportButton}</span>
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>{T.donations.supportButton}</p>
+                  </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={toggleLanguage} variant="outline" size="icon" className='rounded-full'>
+                        <Languages className="h-5 w-5" />
+                        <span className="sr-only">{T.languageButton}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>{T.languageButton}</p>
+                  </TooltipContent>
+              </Tooltip>
           </div>
           <h1 className="text-6xl md:text-8xl font-black text-foreground tracking-tighter" style={{ textShadow: '2px 2px 0 hsl(var(--secondary)), 4px 4px 0 hsl(var(--primary))'}}>
             {T.title}
