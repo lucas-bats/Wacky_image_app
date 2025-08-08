@@ -8,11 +8,13 @@ import Image from 'next/image';
 // Importações de componentes de UI da biblioteca ShadCN.
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useToast } from "@/hooks/use-toast"
 import { 
   generateImageAction
 } from '@/app/actions';
 // Importação de ícones da biblioteca lucide-react.
-import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink } from 'lucide-react';
+import { Sparkles, Wand2, Download, Repeat, Loader2, Languages, Share2, Trash2, ExternalLink, Copy } from 'lucide-react';
 // Importação de utilitários e traduções.
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
@@ -71,6 +73,9 @@ export default function WackyImageForge() {
   const [hasLoaded, setHasLoaded] = useState(false);
   // Estado para controlar a visibilidade do diálogo da imagem em desktop.
   const [isImageDialogOpen, setImageDialogOpen] = useState(false);
+
+  // Hook para exibir notificações (toasts).
+  const { toast } = useToast();
 
   // Acesso rápido às traduções do idioma selecionado.
   const T = translations[language];
@@ -287,7 +292,11 @@ export default function WackyImageForge() {
    */
   const handleGenerate = () => {
     if (selectedKeywords.size === 0) {
-      console.error(T.toast.noKeywords.title, T.toast.noKeywords.description);
+      toast({
+        title: T.toast.noKeywords.title,
+        description: T.toast.noKeywords.description,
+        variant: 'destructive'
+      });
       return;
     }
     
@@ -301,7 +310,11 @@ export default function WackyImageForge() {
       const result = await generateImageAction(englishKeywords);
       
       if (result.error) {
-        console.error(T.toast.generationFailed.title, result.error);
+        toast({
+          title: T.toast.generationFailed.title,
+          description: result.error,
+          variant: 'destructive'
+        });
       } else if (result.imageUrl) {
         setGeneratedImage(result.imageUrl);
         if (!isMobile) {
@@ -338,7 +351,11 @@ export default function WackyImageForge() {
       setCurrentPrompt('');
       const { error, result } = await generateChaosPromptAction();
       if (error || !result) {
-        console.error(T.toast.chaosFailed.title, error || T.toast.chaosFailed.description);
+        toast({
+          title: T.toast.chaosFailed.title,
+          description: error || T.toast.chaosFailed.description,
+          variant: 'destructive'
+        });
       } else {
         const newSelected = new Map<CategoryName, string>();
         
@@ -399,7 +416,11 @@ export default function WackyImageForge() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      console.error("Download failed", e);
+      toast({
+        title: T.toast.downloadFailed.title,
+        description: T.toast.downloadFailed.description,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -429,7 +450,11 @@ export default function WackyImageForge() {
       `);
       newWindow.document.close();
     } else {
-        console.error(T.toast.newWindowFailed.title, T.toast.newWindowFailed.description);
+        toast({
+            title: T.toast.newWindowFailed.title,
+            description: T.toast.newWindowFailed.description,
+            variant: 'destructive'
+        });
     }
   };
 
@@ -456,7 +481,11 @@ export default function WackyImageForge() {
             handleDownload();
         }
     } catch (error) {
-        console.error("Sharing failed", error);
+        toast({
+            title: T.toast.shareFailed.title,
+            description: T.toast.shareFailed.description,
+            variant: 'destructive'
+        });
     }
   };
 
@@ -466,7 +495,20 @@ export default function WackyImageForge() {
    */
   const handleDeleteFromGallery = (id: string) => {
     setGalleryImages(prevImages => prevImages.filter(img => img.id !== id));
+    toast({
+        title: T.toast.deleteSuccess.title,
+    })
   }
+
+  /**
+   * Copia a chave Pix para a área de transferência.
+   */
+  const handleCopyPixKey = () => {
+    navigator.clipboard.writeText(T.donations.pixKey);
+    toast({
+      title: T.donations.toastCopied,
+    });
+  };
 
   /**
    * Alterna o idioma da interface e atualiza as palavras-chave selecionadas para o novo idioma.
@@ -620,7 +662,29 @@ export default function WackyImageForge() {
         </Card>
       )}
     </div>
-  )
+  );
+
+    // JSX para a seção de doação via Pix.
+    const donationSection = (
+      <div className="mt-12">
+        <Card className="shadow-lg border-2 border-border rounded-2xl bg-card text-center">
+          <CardHeader>
+            <CardTitle className="text-3xl font-black">{T.donations.title}</CardTitle>
+            <CardDescription className="font-body text-lg">{T.donations.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4">
+            <p className="font-bold text-accent">{T.donations.pixTitle}</p>
+            <div className="flex w-full max-w-sm items-center space-x-2">
+              <Input type="text" value={T.donations.pixKey} readOnly className="text-center font-mono" />
+              <Button onClick={handleCopyPixKey} variant="outline" size="icon">
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">{T.donations.copyButton}</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
 
   // JSX para os botões de ação principais (Gerar e Modo Caos).
   const actionButtons = (
@@ -668,7 +732,6 @@ export default function WackyImageForge() {
             {isMobile && (
               <div className="space-y-8">
                 {actionButtons}
-                {promptBox}
                 <Tabs defaultValue={T.categoryNames.Animals} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
                     <TabsTrigger value={T.categoryNames.Animals}>{T.categoryNames.Animals}</TabsTrigger>
@@ -721,15 +784,6 @@ export default function WackyImageForge() {
               {/* Exibe o resultado da imagem no celular */}
               {!isPending && generatedImage && isMobile && imageResultCard}
 
-              {/* Placeholder da imagem no celular quando nenhuma imagem foi gerada */}
-              {!isPending && !generatedImage && isMobile && (
-                 <Card className="flex flex-col items-center justify-center gap-4 p-8 rounded-2xl shadow-inner bg-muted/40 border-4 border-dashed border-border transition-all duration-300 ease-in-out">
-                    <div className="text-center">
-                        <h3 className="text-3xl text-primary">{T.placeholderCard.title}</h3>
-                        <p className="text-muted-foreground mt-2 font-body text-lg">{T.placeholderCard.subtitle}</p>
-                    </div>
-                 </Card>
-              )}
             </div>
           </div>
         </main>
@@ -750,7 +804,12 @@ export default function WackyImageForge() {
         {/* Seção da galeria */}
         {gallerySection}
 
+        {/* Seção de Doação */}
+        {donationSection}
+
       </div>
     </TooltipProvider>
   );
 }
+
+    

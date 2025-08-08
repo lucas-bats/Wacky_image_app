@@ -38,6 +38,14 @@ export const translations = {
       openInNewWindow: 'Open',
       openInNewWindowTitle: 'Image Preview',
     },
+    donations: {
+      title: 'Support the Project',
+      description: 'If you like this tool, consider making a donation to support its development!',
+      pixTitle: 'Donate with PIX',
+      pixKey: 'seu-email-pix@exemplo.com', // <-- IMPORTANT: REPLACE WITH YOUR REAL PIX KEY
+      copyButton: 'Copy Key',
+      toastCopied: 'PIX key copied to clipboard!',
+    },
     toast: {
       noKeywords: {
         title: "No keywords!",
@@ -200,6 +208,14 @@ export const translations = {
       openInNewWindow: 'Abrir',
       openInNewWindowTitle: 'Visualização de Imagem',
     },
+    donations: {
+      title: 'Apoie o Projeto',
+      description: 'Se você gostou desta ferramenta, considere fazer uma doação para apoiar seu desenvolvimento!',
+      pixTitle: 'Doe com PIX',
+      pixKey: 'seu-email-pix@exemplo.com', // <-- IMPORTANTE: SUBSTITUA PELA SUA CHAVE PIX REAL
+      copyButton: 'Copiar Chave',
+      toastCopied: 'Chave PIX copiada para a área de transferência!',
+    },
     toast: {
       noKeywords: {
         title: "Nenhuma palavra-chave!",
@@ -325,3 +341,5 @@ export const translations = {
     }
   },
 };
+
+    
