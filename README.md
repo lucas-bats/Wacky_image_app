@@ -25,6 +25,7 @@ Este projeto foi construído utilizando um conjunto de tecnologias modernas para
 - **Ícones**: [Lucide React](https://lucide.dev/)
 
 ## Como Executar o Projeto
+Acesse o link: https://studio--wacky-image-forge.us-central1.hosted.app/
 
 Para executar este projeto localmente, siga os passos abaixo:
 
