@@ -24,9 +24,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { generateChaosPromptAction } from '@/app/actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from './ui/separator';
+import { ThemeToggleButton } from './theme-toggle-button';
 
 
 // Define os tipos para o estado de internacionalização e categorias de palavras-chave.
@@ -751,6 +752,7 @@ export default function WackyImageForge() {
         {/* Cabeçalho da página */}
         <header className="text-center my-8 md:my-12 relative">
           <div className="absolute top-0 right-0 flex gap-2">
+              <ThemeToggleButton />
               <Tooltip>
                   <TooltipTrigger asChild>
                       <Button onClick={handleScrollToDonations} variant="outline" size="icon" className='rounded-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300'>
@@ -852,6 +854,7 @@ export default function WackyImageForge() {
             <Dialog open={isImageDialogOpen} onOpenChange={setImageDialogOpen}>
               <DialogContent className="max-w-2xl">
                 <DialogHeader className="sr-only">
+                  <DialogTitle>{currentPrompt}</DialogTitle>
                   <DialogDescription>{currentPrompt}</DialogDescription>
                 </DialogHeader>
                 {imageResultCard}
